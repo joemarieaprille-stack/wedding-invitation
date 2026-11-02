@@ -54,6 +54,7 @@ When a host finalizes all requested guest decisions, the final RSVP and itemized
 For Gmail API, create Google OAuth credentials with the Gmail `gmail.send` scope and a refresh token. In the web service's private environment settings, set `GMAIL_USER`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_REFRESH_TOKEN`. Never put OAuth credentials or tokens in source control or share them.
 
 Without all Gmail API settings, decisions are still saved and the dashboard reports that no email was sent.
+If Gmail rejects a notification, Render logs include Google's error status and reason without logging credentials or tokens.
 
 ## Production notes
 

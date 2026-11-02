@@ -358,7 +358,39 @@ def send_final_status_email(rsvp):
                     "reason": "The decision was saved, but the email could not be sent.",
                 }
     except urllib.error.HTTPError as error:
-        LOG.error("Gmail API request failed with HTTP status %s.", error.code)
+        try:
+            error_payload = json.loads(error.read().decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            error_payload = {}
+        google_error = error_payload.get("error", {}) if isinstance(error_payload, dict) else {}
+        if isinstance(google_error, dict):
+            google_status = google_error.get("status", "unknown")
+            error_items = google_error.get("errors", [])
+            if not isinstance(error_items, list):
+                error_items = []
+            google_reasons = [
+                item["reason"]
+                for item in error_items
+                if isinstance(item, dict) and isinstance(item.get("reason"), str)
+            ]
+        elif isinstance(google_error, str):
+            google_status = google_error
+            google_reasons = []
+        else:
+            google_status = "unknown"
+            google_reasons = []
+        service = (
+            "Gmail API"
+            if error.url.startswith("https://gmail.googleapis.com/")
+            else "Google OAuth token endpoint"
+        )
+        LOG.error(
+            "%s request failed with HTTP status %s (Google status: %s; reason: %s).",
+            service,
+            error.code,
+            google_status,
+            ", ".join(google_reasons) or "unknown",
+        )
         return {
             "sent": False,
             "reason": "The decision was saved, but the email account could not send the notification.",
