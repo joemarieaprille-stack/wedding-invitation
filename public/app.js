@@ -21,6 +21,7 @@ const elements = {
   dashboard: document.querySelector("#dashboard"),
   pendingRsvpsTab: document.querySelector("#pending-rsvps-tab"),
   finalizedRsvpsTab: document.querySelector("#finalized-rsvps-tab"),
+  declinedRsvpsTab: document.querySelector("#declined-rsvps-tab"),
   rsvpCount: document.querySelector("#rsvp-count"),
   dashboardList: document.querySelector("#admin-rsvp-list"),
   dashboardMessage: document.querySelector("#dashboard-message"),
@@ -32,7 +33,7 @@ let toastTimer;
 let plusOneNames = [];
 let plusOneDraft = [];
 let dashboardRsvps = [];
-let showingFinalizedRsvps = false;
+let activeRsvpTab = "pending";
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 function setMessage(element, message, isError = false) {
@@ -313,30 +314,53 @@ function renderRsvpCards(rsvps, emptyMessage) {
 
 function renderRsvps(rsvps) {
   dashboardRsvps = rsvps;
-  const pending = rsvps.filter((rsvp) => rsvp.plusOneReviewFinalized !== true);
-  const finalized = rsvps.filter((rsvp) => rsvp.plusOneReviewFinalized === true);
+  const pending = rsvps.filter((rsvp) => {
+    const plusOnes = Array.isArray(rsvp.plusOnes) ? rsvp.plusOnes : [];
+    return rsvp.attendance !== "declining"
+      && plusOnes.length > 0
+      && rsvp.plusOneReviewFinalized !== true;
+  });
+  const finalized = rsvps.filter((rsvp) =>
+    rsvp.attendance !== "declining"
+    && (rsvp.plusOneReviewFinalized === true || !Array.isArray(rsvp.plusOnes) || rsvp.plusOnes.length === 0)
+  );
+  const declined = rsvps.filter((rsvp) => rsvp.attendance === "declining");
   elements.rsvpCount.textContent =
     `${pending.length} ${pending.length === 1 ? "request to review" : "requests to review"}`;
   elements.pendingRsvpsTab.textContent = `Needs review (${pending.length})`;
   elements.finalizedRsvpsTab.textContent = `Finalized (${finalized.length})`;
-  elements.pendingRsvpsTab.classList.toggle("is-active", !showingFinalizedRsvps);
-  elements.pendingRsvpsTab.setAttribute("aria-pressed", String(!showingFinalizedRsvps));
-  elements.finalizedRsvpsTab.classList.toggle("is-active", showingFinalizedRsvps);
-  elements.finalizedRsvpsTab.setAttribute("aria-pressed", String(showingFinalizedRsvps));
+  elements.declinedRsvpsTab.textContent = `Can't attend (${declined.length})`;
+  [
+    ["pending", elements.pendingRsvpsTab],
+    ["finalized", elements.finalizedRsvpsTab],
+    ["declined", elements.declinedRsvpsTab]
+  ].forEach(([tabName, tab]) => {
+    const isActive = activeRsvpTab === tabName;
+    tab.classList.toggle("is-active", isActive);
+    tab.setAttribute("aria-pressed", String(isActive));
+  });
 
-  renderRsvpCards(
-    showingFinalizedRsvps ? finalized : pending,
-    showingFinalizedRsvps ? "No requests have been finalized yet." : "No requests are waiting for review."
-  );
+  const tabs = {
+    pending: [pending, "No requests are waiting for review."],
+    finalized: [finalized, "No requests have been finalized yet."],
+    declined: [declined, "No guests have declined the invitation."]
+  };
+  const [visibleRsvps, emptyMessage] = tabs[activeRsvpTab];
+  renderRsvpCards(visibleRsvps, emptyMessage);
 }
 
 elements.pendingRsvpsTab.addEventListener("click", () => {
-  showingFinalizedRsvps = false;
+  activeRsvpTab = "pending";
   renderRsvps(dashboardRsvps);
 });
 
 elements.finalizedRsvpsTab.addEventListener("click", () => {
-  showingFinalizedRsvps = true;
+  activeRsvpTab = "finalized";
+  renderRsvps(dashboardRsvps);
+});
+
+elements.declinedRsvpsTab.addEventListener("click", () => {
+  activeRsvpTab = "declined";
   renderRsvps(dashboardRsvps);
 });
 

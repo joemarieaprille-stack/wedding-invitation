@@ -26,7 +26,7 @@ Open [http://localhost:8080](http://localhost:8080). The server is already desig
 
 Guests use the invitation link. The host dashboard is separate at [http://localhost:8080/host](http://localhost:8080/host) when running locally. The dashboard password comes from the server environment and is never embedded in the client.
 
-The host dashboard shows RSVP requests that still need review by default. After requested guest decisions are finalized, those requests appear under the **Finalized** tab.
+The host dashboard shows RSVP requests that still need review by default. RSVPs with no additional guest requests appear under **Finalized** automatically, as do requests after guest decisions are finalized. Guests who cannot attend appear in a separate **Can't attend** tab.
 
 ## Customize for another wedding
 
