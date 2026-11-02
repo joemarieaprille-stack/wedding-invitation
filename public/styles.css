@@ -197,8 +197,8 @@ main {
   top: 0;
   left: 0;
   display: block;
-  width: var(--sparkle-size, 18px);
-  height: var(--sparkle-size, 18px);
+  width: calc(var(--sparkle-size, 18px) * 1.4);
+  height: calc(var(--sparkle-size, 18px) * 1.4);
   background: var(--sparkle-color);
   clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
   filter: drop-shadow(0 0 7px var(--sparkle-color));
@@ -250,9 +250,13 @@ main {
     opacity: 0;
     transform: translate(-50%, -50%) translate(0, 0) rotate(0) scale(0);
   }
-  10% {
+  12% {
     opacity: 1;
-    transform: translate(-50%, -50%) translate(calc(var(--sparkle-x) * 0.1), calc(var(--sparkle-y) * 0.1)) rotate(36deg) scale(1);
+    transform: translate(-50%, -50%) translate(calc(var(--sparkle-x) * 0.2), calc(var(--sparkle-y) * 0.2)) rotate(36deg) scale(1.2);
+  }
+  65% {
+    opacity: 0.9;
+    transform: translate(-50%, -50%) translate(calc(var(--sparkle-x) * 0.75), calc(var(--sparkle-y) * 0.75)) rotate(234deg) scale(1);
   }
   100% {
     opacity: 0;
@@ -312,10 +316,17 @@ main {
       opacity: 0;
       transform: translate(-50%, -50%) translate(0, 0) scale(0.5);
     }
-    20% { opacity: 1; }
+    25% {
+      opacity: 1;
+      transform: translate(-50%, -50%) translate(calc(var(--sparkle-x) * 0.2), calc(var(--sparkle-y) * 0.2)) scale(1.1);
+    }
+    75% {
+      opacity: 0.85;
+      transform: translate(-50%, -50%) translate(calc(var(--sparkle-x) * 0.28), calc(var(--sparkle-y) * 0.28)) scale(1);
+    }
     100% {
       opacity: 0;
-      transform: translate(-50%, -50%) translate(calc(var(--sparkle-x) * 0.12), calc(var(--sparkle-y) * 0.12)) scale(0.8);
+      transform: translate(-50%, -50%) translate(calc(var(--sparkle-x) * 0.32), calc(var(--sparkle-y) * 0.32)) scale(0.8);
     }
   }
 }

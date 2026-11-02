@@ -243,7 +243,6 @@ def send_final_status_email(rsvp):
     attendance = "attending" if rsvp["attendance"] == "attending" else "declining"
     approved = [item["name"] for item in rsvp["plusOnes"] if item["status"] == "approved"]
     declined = [item["name"] for item in rsvp["plusOnes"] if item["status"] == "declined"]
-    removed = [item["name"] for item in rsvp["plusOnes"] if item["status"] == "removed"]
     lines = [
         f"Hi {rsvp['fullName']},",
         "",
@@ -255,16 +254,12 @@ def send_final_status_email(rsvp):
         "Not approved:",
         *((f"- {name}" for name in declined) if declined else ["- None"]),
         "",
-        "Removed from request:",
-        *((f"- {name}" for name in removed) if removed else ["- None"]),
-        "",
         "We look forward to celebrating with you.",
     ]
     subject = "Your final wedding RSVP status"
     message = "\n".join(lines)
     approved_items = "".join(f"<li>{escape_html(name)}</li>" for name in approved) or "<li>None</li>"
     declined_items = "".join(f"<li>{escape_html(name)}</li>" for name in declined) or "<li>None</li>"
-    removed_items = "".join(f"<li>{escape_html(name)}</li>" for name in removed) or "<li>None</li>"
     html_message = (
         '<!doctype html><html><body style="margin:0;padding:0;background-color:#f4eee5;'
         'font-family:Arial,Helvetica,sans-serif;color:#30271d;">'
@@ -272,14 +267,15 @@ def send_final_status_email(rsvp):
         'style="background-color:#f4eee5;"><tr><td align="center" style="padding:28px 12px;">'
         '<table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" '
         'style="width:100%;max-width:600px;background-color:#fffdf9;border:1px solid #e8dfd1;">'
-        '<tr><td style="padding:0;line-height:0;">'
-        '<img src="cid:invitation-email-background" width="600" alt="Aprille and Joemarie wedding invitation" '
-        'style="display:block;width:100%;max-width:600px;height:auto;border:0;">'
+        '<tr><td width="600" height="300" background="cid:invitation-email-background" '
+        'style="height:300px;padding:0 42px 0 190px;background-color:#fffdf9;'
+        'background-image:url(cid:invitation-email-background);background-position:center;'
+        'background-repeat:no-repeat;background-size:cover;text-align:center;vertical-align:middle;">'
+        '<p style="margin:0 0 8px;color:#9a6d13;font-size:11px;font-weight:bold;'
+        'letter-spacing:2px;text-transform:uppercase;">Wedding RSVP</p>'
+        '<h1 style="margin:0;font-family:Georgia,serif;font-size:28px;'
+        'font-weight:normal;color:#30271d;">Your RSVP is finalized</h1>'
         '</td></tr><tr><td style="padding:30px 34px 34px;">'
-        '<p style="margin:0 0 8px;color:#a77b20;font-size:11px;font-weight:bold;'
-        'letter-spacing:2px;text-align:center;text-transform:uppercase;">Wedding RSVP</p>'
-        '<h1 style="margin:0 0 20px;font-family:Georgia,serif;font-size:28px;'
-        'font-weight:normal;text-align:center;">Your RSVP is finalized</h1>'
         f'<p style="margin:0 0 12px;font-size:16px;">Hi {escape_html(rsvp["fullName"])},</p>'
         f'<p style="margin:0 0 24px;font-size:15px;line-height:1.6;">Your response is '
         f'<strong>{attendance}</strong>. Here is the final decision for your requested guests.</p>'
@@ -290,9 +286,6 @@ def send_final_status_email(rsvp):
         '</td></tr><tr><td style="padding:14px 16px;background-color:#fffdf9;border-bottom:1px solid #eee5d8;">'
         '<h2 style="margin:0 0 8px;font-family:Georgia,serif;font-size:17px;font-weight:normal;">Not approved</h2>'
         f'<ul style="margin:0;padding-left:20px;font-size:14px;line-height:1.8;">{declined_items}</ul>'
-        '</td></tr><tr><td style="padding:14px 16px;background-color:#faf5eb;">'
-        '<h2 style="margin:0 0 8px;font-family:Georgia,serif;font-size:17px;font-weight:normal;">Removed from request</h2>'
-        f'<ul style="margin:0;padding-left:20px;font-size:14px;line-height:1.8;">{removed_items}</ul>'
         '</td></tr></table>'
         '<p style="margin:24px 0 0;font-family:Georgia,serif;font-size:16px;line-height:1.6;text-align:center;">'
         'We look forward to celebrating with you.</p>'
