@@ -196,6 +196,7 @@ main {
   position: absolute;
   top: 0;
   left: 0;
+  display: block;
   width: var(--sparkle-size, 18px);
   height: var(--sparkle-size, 18px);
   background: var(--sparkle-color);
@@ -296,9 +297,26 @@ main {
     transition-duration: 0.01ms !important;
   }
 
-  .lace-envelope.is-popping,
+  .lace-envelope.is-popping {
+    animation-duration: 450ms !important;
+  }
+
   .envelope-sparkles.is-active span {
-    animation: none;
+    animation-duration: 500ms !important;
+    animation-delay: 0ms;
+    filter: drop-shadow(0 0 3px var(--sparkle-color));
+  }
+
+  @keyframes sparkle-burst {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -50%) translate(0, 0) scale(0.5);
+    }
+    20% { opacity: 1; }
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -50%) translate(calc(var(--sparkle-x) * 0.12), calc(var(--sparkle-y) * 0.12)) scale(0.8);
+    }
   }
 }
 

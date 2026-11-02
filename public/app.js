@@ -138,11 +138,9 @@ function openEnvelope() {
   if (elements.envelope.classList.contains("is-open")) return;
   elements.envelope.classList.add("is-open");
   elements.scene.classList.add("is-open");
-  if (!prefersReducedMotion) {
-    elements.envelope.classList.add("is-popping");
-    elements.sparkles.classList.add("is-active");
-  }
-  const popDuration = prefersReducedMotion ? 0 : 1700;
+  elements.envelope.classList.add("is-popping");
+  elements.sparkles.classList.add("is-active");
+  const popDuration = prefersReducedMotion ? 550 : 1700;
   setTimeout(() => {
     elements.scene.classList.add("is-transitioning");
     setTimeout(() => {
