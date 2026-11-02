@@ -1,0 +1,6 @@
+.tools/
+__pycache__/
+*.pyc
+.env
+.venv/
+data/rsvps.json

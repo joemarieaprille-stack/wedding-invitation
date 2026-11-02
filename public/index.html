@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#f4eadc">
+    <meta name="description" content="Wedding invitation">
+    <title>Aprille and Joemarie — Wedding Invitation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Great+Vibes&family=Cinzel:wght@500;600&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <main>
+      <section class="envelope-scene" id="envelope-scene" aria-label="Open your invitation">
+        <p class="scene-note" id="scene-note">Together with their families</p>
+        <div class="envelope-stage">
+          <button class="lace-envelope" id="open-envelope" type="button" aria-label="Open the wedding invitation">
+            <span class="envelope-photo-frame" aria-hidden="true">
+              <img class="envelope-photo" src="/images/envelope-photo-clean.png" width="531" height="744" alt="">
+            </span>
+          </button>
+          <span class="envelope-sparkles" id="envelope-sparkles" aria-hidden="true">
+            <span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span>
+          </span>
+        </div>
+        <p class="open-hint">Tap the seal to open your invitation</p>
+      </section>
+
+      <section class="invitation hidden" id="invitation">
+        <div class="invitation-art-crop">
+          <img class="invitation-art" src="/images/invitation-update.png" width="1080" height="8000" alt="Aprille and Joemarie's updated wedding invitation with venue, parking guide, attire guidance, and flowers">
+        </div>
+        <section class="standalone-rsvp" aria-labelledby="rsvp-title">
+          <header class="standalone-rsvp-heading">
+            <p class="kicker">Kindly respond</p>
+            <h2 id="rsvp-title">RSVP</h2>
+            <p>Please reply by <time id="rsvp-deadline">November 20, 2026</time></p>
+          </header>
+          <p class="host-preview-note">Host preview — RSVP responses are disabled.</p>
+          <form id="rsvp-form" autocomplete="off" novalidate>
+            <label class="field" for="full-name">
+              <span>Full name</span>
+              <input id="full-name" name="fullName" autocomplete="off" autocapitalize="words" spellcheck="false" maxlength="120" placeholder="Your full name" required>
+            </label>
+            <label class="field" for="contact">
+              <span>Email or phone number</span>
+              <input id="contact" name="contact" autocomplete="off" maxlength="254" placeholder="Email or phone number" required>
+            </label>
+            <fieldset class="attendance-field">
+              <legend class="sr-only">Will you attend?</legend>
+              <label class="radio-card">
+                <input type="radio" name="attendance" value="attending" required>
+                <span>Joyfully accepts</span>
+              </label>
+              <label class="radio-card">
+                <input type="radio" name="attendance" value="declining">
+                <span>Regretfully declines</span>
+              </label>
+            </fieldset>
+            <p class="attendance-caption" aria-hidden="true">Will you attend?</p>
+            <label class="field" for="dietary-notes">
+              <span>Dietary restrictions</span>
+              <input id="dietary-notes" name="dietaryNotes" maxlength="1000" placeholder="Add any dietary needs">
+            </label>
+            <label class="field" for="song-request">
+              <span>Song request</span>
+              <input id="song-request" name="songRequest" maxlength="300" placeholder="Your favorite party song">
+            </label>
+            <button class="button plus-one-trigger" id="plus-one-open" type="button">Add guests</button>
+            <button class="button button-gold" id="rsvp-submit" type="submit">Send RSVP response</button>
+            <p class="form-message" id="rsvp-message" role="status" aria-live="polite"></p>
+          </form>
+        </section>
+      </section>
+
+      <dialog class="plus-one-dialog" id="plus-one-dialog" aria-labelledby="plus-one-title">
+        <div class="plus-one-dialog-content">
+          <p class="kicker">Your party</p>
+          <h2 id="plus-one-title">Add guests</h2>
+          <p class="plus-one-limit">Up to 4 additional guests, 5 people total. Add an email to your RSVP for the final decision.</p>
+          <p class="plus-one-note">No kids allowed.</p>
+          <div class="plus-one-fields" id="plus-one-fields"></div>
+          <button class="plus-one-add" id="plus-one-add" type="button">+ Add another guest</button>
+          <p class="form-message" id="plus-one-message" role="status" aria-live="polite"></p>
+          <div class="plus-one-actions">
+            <button class="text-button" id="plus-one-cancel" type="button">Cancel</button>
+            <button class="button button-gold" id="plus-one-save" type="button">Save names</button>
+          </div>
+        </div>
+      </dialog>
+
+      <section class="host-panel hidden" id="host-panel" aria-labelledby="host-title">
+        <div class="host-heading">
+          <p class="kicker">Just for the two of you</p>
+          <h1 id="host-title">Host dashboard</h1>
+          <p>Review RSVPs as they arrive.</p>
+        </div>
+
+        <form class="host-login" id="host-login" autocomplete="off">
+          <div class="field">
+            <div class="password-input">
+              <input id="host-password" name="password" type="password" autocomplete="new-password" required>
+              <button class="password-toggle" id="toggle-host-password" type="button" aria-label="Show password" aria-pressed="false" title="Show password">
+                <svg class="eye-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <svg class="eye-off-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="m3 3 18 18"></path>
+                  <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"></path>
+                  <path d="M9.9 5.2A10.7 10.7 0 0 1 12 5c6.4 0 10 7 10 7a15.7 15.7 0 0 1-3.1 3.9"></path>
+                  <path d="M6.2 6.2C3.5 8 2 12 2 12s3.6 7 10 7a10.7 10.7 0 0 0 3-.4"></path>
+                </svg>
+              </button>
+            </div>
+            <label for="host-password">Host password</label>
+          </div>
+          <button class="button button-gold" type="submit">Sign in</button>
+          <p class="form-message" id="host-login-message" role="status"></p>
+        </form>
+
+        <div class="dashboard hidden" id="dashboard">
+          <div class="dashboard-top">
+            <p id="rsvp-count">0 requests to review</p>
+            <button class="text-button" id="host-logout" type="button">Sign out</button>
+          </div>
+          <nav class="dashboard-tabs" aria-label="RSVP request status">
+            <button class="dashboard-tab is-active" id="pending-rsvps-tab" type="button" aria-pressed="true">Needs review (0)</button>
+            <button class="dashboard-tab" id="finalized-rsvps-tab" type="button" aria-pressed="false">Finalized (0)</button>
+          </nav>
+          <div class="rsvp-list" id="admin-rsvp-list"></div>
+          <p class="dashboard-message" id="dashboard-message" role="status"></p>
+        </div>
+
+        <button class="text-button back-link" id="back-to-invitation" type="button">View invitation</button>
+      </section>
+    </main>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>

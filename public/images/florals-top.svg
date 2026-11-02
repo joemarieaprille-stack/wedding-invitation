@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 430 220" fill="none">
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e8d39a"/>
+      <stop offset="1" stop-color="#c4a15a"/>
+    </linearGradient>
+    <linearGradient id="petalA" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffd56a"/>
+      <stop offset="1" stop-color="#e59a2a"/>
+    </linearGradient>
+    <linearGradient id="petalB" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffc48a"/>
+      <stop offset="1" stop-color="#e07a3a"/>
+    </linearGradient>
+    <linearGradient id="petalC" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#f3b43a"/>
+      <stop offset="1" stop-color="#d46b28"/>
+    </linearGradient>
+  </defs>
+  <g opacity="0.95">
+    <path d="M42 28h54l-27 48z" stroke="url(#gold)" stroke-width="1.4" fill="none"/>
+    <path d="M58 38h22l-11 20z" stroke="url(#gold)" stroke-width="1" fill="none"/>
+    <rect x="28" y="18" width="36" height="36" transform="rotate(45 46 36)" stroke="url(#gold)" stroke-width="1.2" fill="none"/>
+  </g>
+  <g transform="translate(8,8)">
+    <ellipse cx="86" cy="92" rx="18" ry="34" fill="#7d9a4a" opacity="0.55" transform="rotate(-28 86 92)"/>
+    <ellipse cx="54" cy="108" rx="14" ry="30" fill="#8fb45a" opacity="0.5" transform="rotate(18 54 108)"/>
+    <ellipse cx="118" cy="70" rx="12" ry="26" fill="#9bbb63" opacity="0.48" transform="rotate(40 118 70)"/>
+    <g transform="translate(36,46)">
+      <ellipse cx="22" cy="8" rx="16" ry="22" fill="url(#petalA)" transform="rotate(-20 22 8)"/>
+      <ellipse cx="40" cy="18" rx="15" ry="21" fill="url(#petalB)" transform="rotate(32 40 18)"/>
+      <ellipse cx="8" cy="22" rx="14" ry="20" fill="url(#petalC)" transform="rotate(-48 8 22)"/>
+      <ellipse cx="28" cy="28" rx="16" ry="18" fill="#f6c14d"/>
+      <circle cx="26" cy="22" r="7" fill="#f8e7a0"/>
+      <circle cx="26" cy="22" r="3.2" fill="#c97822"/>
+    </g>
+    <g transform="translate(78,18)">
+      <ellipse cx="18" cy="10" rx="13" ry="18" fill="url(#petalB)" transform="rotate(12 18 10)"/>
+      <ellipse cx="32" cy="18" rx="12" ry="17" fill="url(#petalA)" transform="rotate(50 32 18)"/>
+      <ellipse cx="10" cy="22" rx="12" ry="16" fill="#ffb35a"/>
+      <circle cx="20" cy="20" r="6" fill="#ffe29a"/>
+      <circle cx="20" cy="20" r="2.6" fill="#d07a28"/>
+    </g>
+    <g transform="translate(10,78)">
+      <ellipse cx="16" cy="8" rx="11" ry="15" fill="#ffcf70"/>
+      <ellipse cx="26" cy="14" rx="10" ry="14" fill="#f0a03a"/>
+      <ellipse cx="8" cy="16" rx="9" ry="13" fill="#e88840"/>
+      <circle cx="16" cy="14" r="4.5" fill="#fff1c4"/>
+    </g>
+    <circle cx="70" cy="40" r="3.5" fill="#f3c45c"/>
+    <circle cx="128" cy="96" r="2.8" fill="#e8a24a"/>
+    <circle cx="22" cy="52" r="2.2" fill="#d98b3a"/>
+  </g>
+  <g transform="translate(430,0) scale(-1,1)">
+    <g opacity="0.95">
+      <path d="M42 28h54l-27 48z" stroke="url(#gold)" stroke-width="1.4" fill="none"/>
+      <rect x="28" y="18" width="36" height="36" transform="rotate(45 46 36)" stroke="url(#gold)" stroke-width="1.2" fill="none"/>
+    </g>
+    <g transform="translate(8,8)">
+      <ellipse cx="86" cy="92" rx="18" ry="34" fill="#7d9a4a" opacity="0.55" transform="rotate(-28 86 92)"/>
+      <ellipse cx="54" cy="108" rx="14" ry="30" fill="#8fb45a" opacity="0.5" transform="rotate(18 54 108)"/>
+      <g transform="translate(36,46)">
+        <ellipse cx="22" cy="8" rx="16" ry="22" fill="url(#petalA)" transform="rotate(-20 22 8)"/>
+        <ellipse cx="40" cy="18" rx="15" ry="21" fill="url(#petalB)" transform="rotate(32 40 18)"/>
+        <ellipse cx="8" cy="22" rx="14" ry="20" fill="url(#petalC)" transform="rotate(-48 8 22)"/>
+        <ellipse cx="28" cy="28" rx="16" ry="18" fill="#f6c14d"/>
+        <circle cx="26" cy="22" r="7" fill="#f8e7a0"/>
+      </g>
+      <g transform="translate(78,22)">
+        <ellipse cx="18" cy="10" rx="13" ry="18" fill="url(#petalB)"/>
+        <ellipse cx="32" cy="18" rx="12" ry="17" fill="#ffb35a"/>
+        <circle cx="20" cy="20" r="6" fill="#ffe29a"/>
+      </g>
+    </g>
+  </g>
+</svg>

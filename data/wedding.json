@@ -1,0 +1,22 @@
+{
+  "couple": {
+    "firstName": "Aprille",
+    "secondName": "Joemarie",
+    "displayName": "Aprille and Joemarie"
+  },
+  "date": "2026-12-21",
+  "weekday": "Monday",
+  "time": "2:00 PM",
+  "venue": {
+    "name": "Beati Regina Villa",
+    "address": "Town and Country Homes, Marilao, Bulacan",
+    "mapUrl": "https://maps.google.com/?q=Beati+Regina+Villa+Marilao+Bulacan"
+  },
+  "photo": "/images/couple-portrait.jpg",
+  "photoCaption": "Aprille and Joemarie",
+  "welcome": "Together with their families",
+  "message": "Request the honor of your presence at their wedding celebration",
+  "schedule": [],
+  "dressCode": "",
+  "rsvpBy": "2026-11-20"
+}
