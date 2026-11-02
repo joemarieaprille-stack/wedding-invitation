@@ -49,7 +49,7 @@ If you host the couple photo somewhere other than `images.unsplash.com`, update 
 
 ## Final RSVP notifications
 
-When a host finalizes all requested guest decisions, the final RSVP and itemized approved/not-approved guest list are saved first. If Gmail API is configured, the primary guest receives an email with the final RSVP and guest decisions, with the invitation email artwork as a background behind the title. The notification does not include an invitation link. Guests requesting additional attendees should provide an email address.
+When a host finalizes all requested guest decisions, the final RSVP and itemized approved/not-approved guest list are saved first. If Gmail API is configured, the primary guest receives a phone-friendly email with the invitation email artwork as a background behind the title and an itemized guest-decision list. The notification does not include an invitation link. Guests requesting additional attendees should provide an email address.
 
 For Gmail API, create Google OAuth credentials with the Gmail `gmail.send` scope and a refresh token. In the web service's private environment settings, set `GMAIL_USER`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_REFRESH_TOKEN`. Never put OAuth credentials or tokens in source control or share them.
 
