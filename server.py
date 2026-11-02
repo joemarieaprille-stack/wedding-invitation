@@ -268,13 +268,9 @@ def send_final_status_email(rsvp):
         '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" '
         'style="width:100%;max-width:420px;background-color:#fffdf9;border:1px solid #e8dfd1;">'
         '<tr><td style="padding:0;line-height:0;">'
-        '<img src="cid:invitation-email-background" width="420" alt="Aprille and Joemarie wedding artwork" '
+        '<img src="cid:invitation-email-header" width="420" '
+        'alt="Wedding RSVP. Your RSVP is finalized. Aprille and Joemarie wedding artwork." '
         'style="display:block;width:100%;max-width:420px;height:auto;border:0;">'
-        '</td></tr><tr><td style="padding:20px 16px 22px;text-align:center;background-color:#fffdf9;">'
-        '<p style="margin:0 0 8px;color:#805600;font-size:10px;font-weight:bold;'
-        'letter-spacing:1.5px;text-transform:uppercase;">Wedding RSVP</p>'
-        '<h1 style="margin:0;font-family:Georgia,serif;font-size:22px;line-height:1.2;'
-        'font-weight:bold;color:#30271d;">Your RSVP is finalized</h1>'
         '</td></tr><tr><td style="padding:24px 20px 26px;">'
         f'<p style="margin:0 0 12px;font-size:16px;line-height:1.5;">Hi {escape_html(rsvp["fullName"])},</p>'
         f'<p style="margin:0 0 20px;font-size:15px;line-height:1.6;">Your response is '
@@ -300,19 +296,19 @@ def send_final_status_email(rsvp):
     email.add_alternative(html_message, subtype="html")
     html_part = email.get_body(preferencelist=("html",))
     try:
-        with (PUBLIC_DIR / "images" / "email-background.png").open("rb") as background_file:
-            background_image = background_file.read()
+        with (PUBLIC_DIR / "images" / "email-header.png").open("rb") as header_file:
+            header_image = header_file.read()
     except OSError:
-        LOG.exception("Could not read the RSVP email artwork.")
+        LOG.exception("Could not read the RSVP email header artwork.")
         return {
             "sent": False,
-            "reason": "The decision was saved, but the email artwork could not be loaded.",
+            "reason": "The decision was saved, but the email header artwork could not be loaded.",
         }
     html_part.add_related(
-        background_image,
+        header_image,
         maintype="image",
         subtype="png",
-        cid="<invitation-email-background>",
+        cid="<invitation-email-header>",
         disposition="inline",
     )
 
