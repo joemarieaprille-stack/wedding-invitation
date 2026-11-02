@@ -27,6 +27,10 @@ PUBLIC_DIR = ROOT / "public"
 DATA_DIR = ROOT / "data"
 RSVP_FILE = DATA_DIR / "rsvps.json"
 DATABASE_URL = os.environ.get("DATABASE_URL")
+PUBLIC_BASE_URL = os.environ.get(
+    "PUBLIC_BASE_URL",
+    "https://wedding-invitation-k3a8.onrender.com",
+).rstrip("/")
 PORT = int(os.environ.get("PORT", "8080"))
 HOST = os.environ.get("HOST", "0.0.0.0")
 SESSION_LIFETIME = 8 * 60 * 60
@@ -258,6 +262,7 @@ def send_final_status_email(rsvp):
     ]
     subject = "Your final wedding RSVP status"
     message = "\n".join(lines)
+    background_image_url = f"{PUBLIC_BASE_URL}/images/email-background.png"
     approved_items = "".join(f"<li>{escape_html(name)}</li>" for name in approved) or "<li>None</li>"
     declined_items = "".join(f"<li>{escape_html(name)}</li>" for name in declined) or "<li>None</li>"
     html_message = (
@@ -267,9 +272,9 @@ def send_final_status_email(rsvp):
         'style="width:100%;background-color:#f4eee5;"><tr><td align="center" style="padding:16px 10px;">'
         '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" '
         'style="width:100%;max-width:420px;background-color:#fffdf9;border:1px solid #e8dfd1;">'
-        '<tr><td width="100%" height="210" background="cid:invitation-email-background" '
+        f'<tr><td width="100%" height="210" background="{background_image_url}" '
         'style="height:210px;padding:0 16px 0 40%;background-color:#fffdf9;'
-        'background-image:url(cid:invitation-email-background);background-position:center;'
+        f'background-image:url({background_image_url});background-position:center;'
         'background-repeat:no-repeat;background-size:cover;text-align:center;vertical-align:middle;">'
         '<p style="margin:0 0 8px;color:#805600;font-size:10px;font-weight:bold;'
         'letter-spacing:1.5px;text-transform:uppercase;">Wedding RSVP</p>'
@@ -298,24 +303,6 @@ def send_final_status_email(rsvp):
     email["Subject"] = subject
     email.set_content(message)
     email.add_alternative(html_message, subtype="html")
-    html_part = email.get_body(preferencelist=("html",))
-    try:
-        with (PUBLIC_DIR / "images" / "email-background.png").open("rb") as background_file:
-            background_image = background_file.read()
-    except OSError:
-        LOG.exception("Could not read the RSVP email background image.")
-        return {
-            "sent": False,
-            "reason": "The decision was saved, but the email design image could not be loaded.",
-        }
-    html_part.add_related(
-        background_image,
-        maintype="image",
-        subtype="png",
-        cid="<invitation-email-background>",
-        filename="email-background.png",
-        disposition="inline",
-    )
 
     try:
         token_request = urllib.request.Request(
