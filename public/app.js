@@ -1,7 +1,5 @@
 const elements = {
-  scene: document.querySelector("#envelope-scene"),
-  envelope: document.querySelector("#open-envelope"),
-  sparkles: document.querySelector("#envelope-sparkles"),
+  intro: document.querySelector("#invitation-intro"),
   invitation: document.querySelector("#invitation"),
   hostPanel: document.querySelector("#host-panel"),
   backToInvitation: document.querySelector("#back-to-invitation"),
@@ -212,37 +210,21 @@ function renderWedding(data) {
   document.querySelector('meta[name="description"]').content = data.message;
   document.querySelector('meta[name="theme-color"]').content = "#f4eadc";
 
-  document.querySelector("#scene-note").textContent = data.welcome;
   if (data.rsvpBy) {
     document.querySelector("#rsvp-deadline").textContent = formatDate(data.rsvpBy);
   }
 }
 
-function openEnvelope() {
-  if (elements.envelope.classList.contains("is-open")) return;
-  elements.envelope.classList.add("is-open");
-  elements.scene.classList.add("is-open");
-  elements.envelope.classList.add("is-popping");
-  elements.sparkles.classList.add("is-active");
-  const popDuration = prefersReducedMotion ? 550 : 1700;
+function revealInvitation() {
+  elements.intro.setAttribute("aria-hidden", "true");
+  elements.intro.classList.add("is-transitioning");
+  elements.invitation.classList.remove("hidden");
+  document.body.classList.add("showing-invitation");
   setTimeout(() => {
-    elements.scene.classList.add("is-transitioning");
-    setTimeout(() => {
-      elements.scene.classList.add("hidden");
-      elements.invitation.classList.remove("hidden");
-      document.body.classList.add("showing-invitation");
-      window.scrollTo({ top: 0, behavior: prefersReducedMotion ? "auto" : "smooth" });
-    }, prefersReducedMotion ? 0 : 450);
-  }, popDuration);
+    elements.intro.classList.add("hidden");
+    window.scrollTo({ top: 0, behavior: prefersReducedMotion ? "auto" : "smooth" });
+  }, prefersReducedMotion ? 650 : 1000);
 }
-
-elements.envelope.addEventListener("click", openEnvelope);
-elements.envelope.addEventListener("keydown", (event) => {
-  if (event.key === "Enter" || event.key === " ") {
-    event.preventDefault();
-    openEnvelope();
-  }
-});
 
 const attendanceInputs = [...document.querySelectorAll('.radio-card input[name="attendance"]')];
 attendanceInputs.forEach((input) => {
@@ -348,7 +330,7 @@ function showHostPanel() {
   elements.hostPassword.value = "";
   document.body.classList.remove("showing-invitation");
   document.body.classList.remove("host-viewing-invitation");
-  elements.scene.classList.add("hidden");
+  elements.intro.classList.add("hidden");
   elements.invitation.classList.add("hidden");
   elements.hostPanel.classList.remove("hidden");
   elements.hostPanel.scrollIntoView({ behavior: prefersReducedMotion ? "auto" : "smooth" });
@@ -357,7 +339,7 @@ function showHostPanel() {
 
 function showInvitation() {
   elements.hostPanel.classList.add("hidden");
-  elements.scene.classList.add("hidden");
+  elements.intro.classList.add("hidden");
   elements.invitation.classList.remove("hidden");
   document.body.classList.add("showing-invitation", "host-viewing-invitation");
   window.scrollTo({ top: 0, behavior: prefersReducedMotion ? "auto" : "smooth" });
@@ -769,7 +751,11 @@ async function start() {
     if (!response.ok) throw new Error("The wedding details could not be loaded.");
     wedding = await response.json();
     renderWedding(wedding);
-    if (window.location.pathname === "/host") showHostPanel();
+    if (window.location.pathname === "/host") {
+      showHostPanel();
+    } else {
+      setTimeout(revealInvitation, 5000);
+    }
   } catch (error) {
     showToast(error.message);
   }

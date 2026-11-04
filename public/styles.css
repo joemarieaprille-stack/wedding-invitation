@@ -90,6 +90,62 @@ main {
 
 .text-button { color: var(--gold-deep); }
 
+.invitation-intro {
+  position: fixed;
+  z-index: 2;
+  top: 0;
+  left: 50%;
+  display: grid;
+  width: min(100%, 430px);
+  min-height: 100svh;
+  place-items: center;
+  overflow: hidden;
+  padding: 32px 24px;
+  transform: translateX(-50%);
+  background:
+    radial-gradient(ellipse at 50% 40%, rgb(255 255 255 / 84%) 0%, transparent 58%),
+    linear-gradient(160deg, #f8f3eb 0%, #efe4d4 100%);
+  opacity: 1;
+  transition: opacity 1000ms ease-in-out;
+}
+
+.invitation-intro::before,
+.invitation-intro::after {
+  position: absolute;
+  inset: 18px;
+  border: 1px solid rgb(184 134 11 / 38%);
+  content: "";
+  pointer-events: none;
+}
+
+.invitation-intro::after {
+  inset: 24px;
+  border-color: rgb(184 134 11 / 18%);
+}
+
+.invitation-intro.is-transitioning {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.intro-card {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 360px);
+  padding: 44px 20px;
+  text-align: center;
+}
+
+.intro-eyebrow {
+  margin: 0;
+  color: var(--gold-deep);
+  font-family: var(--display);
+  font-size: clamp(18px, 5vw, 22px);
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
 .envelope-scene {
   position: relative;
   display: flex;
@@ -284,7 +340,7 @@ main {
 .invitation {
   padding: 0;
   background: #ffffff;
-  animation: fade-in 0.55s ease both;
+  animation: fade-in 1000ms ease-in-out both;
 }
 
 @keyframes fade-in {
@@ -624,7 +680,7 @@ body.host-viewing-invitation .host-preview-note {
 
 .plus-one-add:disabled { cursor: not-allowed; opacity: 0.5; }
 
-body.showing-invitation #envelope-scene,
+body.showing-invitation #invitation-intro:not(.is-transitioning),
 body.showing-invitation #host-panel { display: none !important; }
 
 body.showing-invitation main { width: min(100%, 430px); }
@@ -1624,6 +1680,6 @@ body.showing-invitation main { width: min(100%, 430px); }
     transition-duration: 0.01ms !important;
   }
 
-  .envelope-scene { transition-duration: 0.65s !important; }
-  .envelope-stage { transition-duration: 1.6s !important; }
+  .invitation-intro { transition-duration: 650ms !important; }
+  .invitation { animation-duration: 650ms !important; }
 }

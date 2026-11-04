@@ -3,8 +3,7 @@
 A mobile-first interactive wedding invitation with:
 
 - A phone-width layout on desktop that fills the screen on mobile
-- Animated envelope opening
-- Invitation appears after the envelope opens
+- A minimal "You're invited" welcome screen that automatically fades into the invitation
 - Configurable invitation details (names, date, venue, schedule, dress code)
 - Host-managed invite list with a per-invitation limit of up to 20 named additional guests
 - Guest RSVP form that checks invitation eligibility by name and enforces each invitation's plus-one limit
@@ -23,7 +22,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\start.ps1
 
 The execution-policy bypass applies only to the PowerShell process that starts the app.
 
-Open [http://localhost:8080](http://localhost:8080). The server is already designed for mobile touch (envelope tap + fog wipe).
+Open [http://localhost:8080](http://localhost:8080). The welcome screen and invitation are designed for mobile touch.
 
 Guests use the invitation link. The host dashboard is separate at [http://localhost:8080/host](http://localhost:8080/host) when running locally. The dashboard password comes from the server environment and is never embedded in the client.
 
