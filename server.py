@@ -26,15 +26,17 @@ ROOT = Path(__file__).resolve().parent
 PUBLIC_DIR = ROOT / "public"
 DATA_DIR = ROOT / "data"
 RSVP_FILE = DATA_DIR / "rsvps.json"
+INVITATIONS_FILE = DATA_DIR / "invitations.json"
 DATABASE_URL = os.environ.get("DATABASE_URL")
 PORT = int(os.environ.get("PORT", "8080"))
 HOST = os.environ.get("HOST", "0.0.0.0")
 SESSION_LIFETIME = 8 * 60 * 60
 MAX_BODY_SIZE = 16_384
-MAX_PLUS_ONES = 4
+MAX_PLUS_ONES = 20
 SESSIONS = {}
 SESSIONS_LOCK = threading.Lock()
 RSVPS_LOCK = threading.Lock()
+INVITATIONS_LOCK = threading.Lock()
 EMAIL_PATTERN = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 PHONE_PATTERN = re.compile(r"^[+()\d\s.-]{7,40}$")
 LOG = logging.getLogger("wedding_invitation")
@@ -165,6 +167,112 @@ def write_rsvps(rsvps):
             temporary_path.unlink()
 
 
+def invitation_name_key(name):
+    return " ".join(name.split()).casefold()
+
+
+def read_invitations():
+    if DATABASE_URL:
+        with postgres_connection() as connection:
+            rows = connection.execute(
+                "SELECT id, name, name_key, allowed_plus_ones, created_at FROM invitations ORDER BY created_at, id"
+            ).fetchall()
+        return [
+            {
+                "id": row[0],
+                "name": row[1],
+                "nameKey": row[2],
+                "allowedPlusOnes": row[3],
+                "createdAt": row[4],
+            }
+            for row in rows
+        ]
+
+    if not INVITATIONS_FILE.exists():
+        return []
+    with INVITATIONS_FILE.open("r", encoding="utf-8") as invitations_file:
+        return json.load(invitations_file)
+
+
+def write_invitations(invitations):
+    if DATABASE_URL:
+        with postgres_connection() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute("DELETE FROM invitations")
+                cursor.executemany(
+                    """
+                    INSERT INTO invitations (id, name, name_key, allowed_plus_ones, created_at)
+                    VALUES (%s, %s, %s, %s, %s)
+                    """,
+                    [
+                        (
+                            invitation["id"],
+                            invitation["name"],
+                            invitation["nameKey"],
+                            invitation["allowedPlusOnes"],
+                            invitation["createdAt"],
+                        )
+                        for invitation in invitations
+                    ],
+                )
+        return
+
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    temporary_path = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            dir=DATA_DIR,
+            prefix="invitations-",
+            suffix=".tmp",
+            delete=False,
+        ) as temporary_file:
+            temporary_path = Path(temporary_file.name)
+            json.dump(invitations, temporary_file, ensure_ascii=False, indent=2)
+            temporary_file.write("\n")
+        temporary_path.replace(INVITATIONS_FILE)
+    finally:
+        if temporary_path is not None and temporary_path.exists():
+            temporary_path.unlink()
+
+
+def valid_plus_one_limit(value):
+    return isinstance(value, int) and not isinstance(value, bool) and 0 <= value <= MAX_PLUS_ONES
+
+
+def invitation_has_rsvp(invitation, rsvps):
+    return any(
+        rsvp.get("inviteId") == invitation["id"]
+        or (
+            not rsvp.get("inviteId")
+            and invitation_name_key(rsvp.get("fullName", "")) == invitation["nameKey"]
+        )
+        for rsvp in rsvps
+    )
+
+
+def invitation_response(invitation, rsvps):
+    rsvp = next(
+        (
+            guest for guest in rsvps
+            if guest.get("inviteId") == invitation["id"]
+            or (
+                not guest.get("inviteId")
+                and invitation_name_key(guest.get("fullName", "")) == invitation["nameKey"]
+            )
+        ),
+        None,
+    )
+    return {
+        "id": invitation["id"],
+        "name": invitation["name"],
+        "allowedPlusOnes": invitation["allowedPlusOnes"],
+        "rsvpStatus": rsvp.get("attendance") if rsvp else None,
+        "requestedPlusOnes": len(rsvp.get("plusOnes", [])) if rsvp else 0,
+    }
+
+
 def valid_string(value, maximum):
     return isinstance(value, str) and bool(value.strip()) and len(value.strip()) <= maximum
 
@@ -205,7 +313,7 @@ def normalize_rsvp(body):
             return None, "The relationship or note must be 300 characters or fewer."
         plus_one_names = [legacy_name] if legacy_requested and legacy_name else []
     if not isinstance(plus_one_names, list) or len(plus_one_names) > MAX_PLUS_ONES:
-        return None, "You may request up to four additional guests."
+        return None, f"You may request up to {MAX_PLUS_ONES} additional guests."
     if attendance == "attending" and any(not valid_string(name, 120) for name in plus_one_names):
         return None, "Please provide a name for each requested guest."
 
@@ -429,6 +537,20 @@ class WeddingRequestHandler(BaseHTTPRequestHandler):
         if route.startswith("/api/admin/") and not self.is_admin():
             json_response(self, 401, {"error": "Please sign in to the host dashboard."})
             return
+        if route == "/api/admin/invitations":
+            try:
+                with RSVPS_LOCK, INVITATIONS_LOCK:
+                    invitations = read_invitations()
+                    rsvps = read_rsvps()
+                    json_response(
+                        self,
+                        200,
+                        {"invitations": [invitation_response(item, rsvps) for item in invitations]},
+                    )
+            except (OSError, json.JSONDecodeError, StorageError):
+                LOG.exception("Could not read invitation records.")
+                json_response(self, 500, {"error": "The invitation list could not be loaded."})
+            return
         if route == "/api/admin/rsvps":
             try:
                 json_response(self, 200, {"rsvps": read_rsvps()})
@@ -443,6 +565,35 @@ class WeddingRequestHandler(BaseHTTPRequestHandler):
         if route.startswith("/api/") and not self.valid_origin():
             json_response(self, 403, {"error": "Request origin is not allowed."})
             return
+        if route == "/api/invitations/lookup":
+            try:
+                body = self.read_json_body()
+            except RequestError as error:
+                json_response(self, error.status, {"error": str(error)})
+                return
+            if not valid_string(body.get("name"), 120):
+                json_response(self, 400, {"error": "Please provide your full name."})
+                return
+            name_key = invitation_name_key(body["name"])
+            try:
+                with INVITATIONS_LOCK:
+                    invitation = next(
+                        (item for item in read_invitations() if item["nameKey"] == name_key),
+                        None,
+                    )
+            except (OSError, json.JSONDecodeError, StorageError):
+                LOG.exception("Could not look up an invitation.")
+                json_response(self, 500, {"error": "Your invitation could not be checked. Please try again."})
+                return
+            json_response(
+                self,
+                200,
+                {
+                    "invited": invitation is not None,
+                    "allowedPlusOnes": invitation["allowedPlusOnes"] if invitation else 0,
+                },
+            )
+            return
         if route == "/api/rsvps":
             try:
                 body = self.read_json_body()
@@ -454,8 +605,41 @@ class WeddingRequestHandler(BaseHTTPRequestHandler):
                 json_response(self, 400, {"error": error})
                 return
             try:
-                with RSVPS_LOCK:
+                with RSVPS_LOCK, INVITATIONS_LOCK:
+                    invitations = read_invitations()
+                    name_key = invitation_name_key(rsvp["fullName"])
+                    invitation = next(
+                        (item for item in invitations if item["nameKey"] == name_key),
+                        None,
+                    )
+                    if invitation is None:
+                        json_response(
+                            self,
+                            403,
+                            {"error": "We couldn't find an invitation for this name. Only invited guests can RSVP."},
+                        )
+                        return
+                    if len(rsvp["plusOnes"]) > invitation["allowedPlusOnes"]:
+                        json_response(
+                            self,
+                            400,
+                            {
+                                "error": (
+                                    f"Your invitation allows up to "
+                                    f"{invitation['allowedPlusOnes']} additional guests."
+                                )
+                            },
+                        )
+                        return
                     rsvps = read_rsvps()
+                    if invitation_has_rsvp(invitation, rsvps):
+                        json_response(
+                            self,
+                            409,
+                            {"error": "An RSVP has already been received for this invitation. Please contact the host if you need to make a change."},
+                        )
+                        return
+                    rsvp["inviteId"] = invitation["id"]
                     rsvps.append(rsvp)
                     write_rsvps(rsvps)
             except (OSError, json.JSONDecodeError, StorageError):
@@ -513,6 +697,74 @@ class WeddingRequestHandler(BaseHTTPRequestHandler):
             )
             return
 
+        if route == "/api/admin/invitations":
+            try:
+                body = self.read_json_body()
+            except RequestError as error:
+                json_response(self, error.status, {"error": str(error)})
+                return
+            if not valid_string(body.get("name"), 120):
+                json_response(self, 400, {"error": "Please provide the invitee's full name."})
+                return
+            if not valid_plus_one_limit(body.get("allowedPlusOnes")):
+                json_response(self, 400, {"error": f"Allowed plus-ones must be between 0 and {MAX_PLUS_ONES}."})
+                return
+            name = body["name"].strip()
+            name_key = invitation_name_key(name)
+            invitation = {
+                "id": str(uuid.uuid4()),
+                "name": name,
+                "nameKey": name_key,
+                "allowedPlusOnes": body["allowedPlusOnes"],
+                "createdAt": datetime.now(timezone.utc).isoformat(),
+            }
+            try:
+                with RSVPS_LOCK, INVITATIONS_LOCK:
+                    invitations = read_invitations()
+                    if any(item["nameKey"] == name_key for item in invitations):
+                        json_response(self, 409, {"error": "An invitation for this name already exists."})
+                        return
+                    rsvps = read_rsvps()
+                    existing_rsvp = next(
+                        (
+                            item for item in rsvps
+                            if not item.get("inviteId")
+                            and invitation_name_key(item.get("fullName", "")) == name_key
+                        ),
+                        None,
+                    )
+                    if (
+                        existing_rsvp
+                        and len(existing_rsvp.get("plusOnes", [])) > invitation["allowedPlusOnes"]
+                    ):
+                        json_response(
+                            self,
+                            409,
+                            {
+                                "error": (
+                                    f"This guest already requested "
+                                    f"{len(existing_rsvp['plusOnes'])} additional guests."
+                                )
+                            },
+                        )
+                        return
+                    for rsvp in rsvps:
+                        if (
+                            not rsvp.get("inviteId")
+                            and invitation_name_key(rsvp.get("fullName", "")) == name_key
+                        ):
+                            rsvp["inviteId"] = invitation["id"]
+                    invitations.append(invitation)
+                    write_invitations(invitations)
+                    if any(rsvp.get("inviteId") == invitation["id"] for rsvp in rsvps):
+                        write_rsvps(rsvps)
+            except (OSError, json.JSONDecodeError, StorageError):
+                LOG.exception("Could not add an invitation.")
+                json_response(self, 500, {"error": "The invitation could not be added."})
+                return
+            json_response(self, 201, {"invitation": invitation})
+            return
+
         json_response(self, 404, {"error": "Not found."})
 
     def do_PATCH(self):
@@ -522,6 +774,66 @@ class WeddingRequestHandler(BaseHTTPRequestHandler):
             return
         if not route.startswith("/api/admin/") or not self.is_admin():
             json_response(self, 401, {"error": "Please sign in to the host dashboard."})
+            return
+
+        invitation_match = re.fullmatch(r"/api/admin/invitations/([a-f0-9-]+)", route, re.IGNORECASE)
+        if invitation_match:
+            try:
+                body = self.read_json_body()
+            except RequestError as error:
+                json_response(self, error.status, {"error": str(error)})
+                return
+            if not valid_string(body.get("name"), 120):
+                json_response(self, 400, {"error": "Please provide the invitee's full name."})
+                return
+            if not valid_plus_one_limit(body.get("allowedPlusOnes")):
+                json_response(self, 400, {"error": f"Allowed plus-ones must be between 0 and {MAX_PLUS_ONES}."})
+                return
+            invitation_id = invitation_match.group(1)
+            name = body["name"].strip()
+            name_key = invitation_name_key(name)
+            try:
+                with RSVPS_LOCK, INVITATIONS_LOCK:
+                    invitations = read_invitations()
+                    invitation = next((item for item in invitations if item["id"] == invitation_id), None)
+                    if invitation is None:
+                        json_response(self, 404, {"error": "That invitation could not be found."})
+                        return
+                    if any(
+                        item["id"] != invitation_id and item["nameKey"] == name_key
+                        for item in invitations
+                    ):
+                        json_response(self, 409, {"error": "An invitation for this name already exists."})
+                        return
+                    rsvps = read_rsvps()
+                    for rsvp in rsvps:
+                        if (
+                            not rsvp.get("inviteId")
+                            and invitation_name_key(rsvp.get("fullName", "")) == invitation["nameKey"]
+                        ):
+                            rsvp["inviteId"] = invitation_id
+                    requested_count = sum(
+                        len(rsvp.get("plusOnes", []))
+                        for rsvp in rsvps
+                        if rsvp.get("inviteId") == invitation_id
+                    )
+                    if body["allowedPlusOnes"] < requested_count:
+                        json_response(
+                            self,
+                            409,
+                            {"error": f"This invitation already has {requested_count} requested additional guests."},
+                        )
+                        return
+                    invitation["name"] = name
+                    invitation["nameKey"] = name_key
+                    invitation["allowedPlusOnes"] = body["allowedPlusOnes"]
+                    write_invitations(invitations)
+                    write_rsvps(rsvps)
+            except (OSError, json.JSONDecodeError, StorageError):
+                LOG.exception("Could not update an invitation.")
+                json_response(self, 500, {"error": "The invitation could not be updated."})
+                return
+            json_response(self, 200, {"invitation": invitation})
             return
 
         match = re.fullmatch(r"/api/admin/rsvps/([a-f0-9-]+)/plus-ones", route, re.IGNORECASE)
@@ -585,6 +897,33 @@ class WeddingRequestHandler(BaseHTTPRequestHandler):
             return
         if not route.startswith("/api/admin/") or not self.is_admin():
             json_response(self, 401, {"error": "Please sign in to the host dashboard."})
+            return
+
+        invitation_match = re.fullmatch(r"/api/admin/invitations/([a-f0-9-]+)", route, re.IGNORECASE)
+        if invitation_match:
+            invitation_id = invitation_match.group(1)
+            try:
+                with RSVPS_LOCK, INVITATIONS_LOCK:
+                    invitations = read_invitations()
+                    invitation = next((item for item in invitations if item["id"] == invitation_id), None)
+                    if invitation is None:
+                        json_response(self, 404, {"error": "That invitation could not be found."})
+                        return
+                    if invitation_has_rsvp(invitation, read_rsvps()):
+                        json_response(
+                            self,
+                            409,
+                            {"error": "This guest already has an RSVP. Delete their RSVP before removing the invitation."},
+                        )
+                        return
+                    write_invitations(
+                        [item for item in invitations if item["id"] != invitation_id]
+                    )
+            except (OSError, json.JSONDecodeError, StorageError):
+                LOG.exception("Could not remove an invitation.")
+                json_response(self, 500, {"error": "The invitation could not be removed."})
+                return
+            json_response(self, 200, {"ok": True, "id": invitation_id})
             return
 
         match = re.fullmatch(r"/api/admin/rsvps/([a-f0-9-]+)", route, re.IGNORECASE)
@@ -709,6 +1048,17 @@ def main():
                     id TEXT PRIMARY KEY,
                     submitted_at TEXT NOT NULL,
                     payload JSONB NOT NULL
+                )
+                """
+            )
+            connection.execute(
+                """
+                CREATE TABLE IF NOT EXISTS invitations (
+                    id TEXT PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    name_key TEXT NOT NULL UNIQUE,
+                    allowed_plus_ones INTEGER NOT NULL,
+                    created_at TEXT NOT NULL
                 )
                 """
             )

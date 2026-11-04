@@ -36,7 +36,7 @@
 
       <section class="invitation hidden" id="invitation">
         <div class="invitation-art-crop">
-          <img class="invitation-art" src="/images/invitation-update.png" width="1080" height="8000" alt="Aprille and Joemarie's updated wedding invitation with venue, parking guide, attire guidance, and flowers">
+          <img class="invitation-art" src="/images/invitation-update.png" width="1080" height="8000" alt="Aprille and Joemarie's wedding invitation with venue, parking guide, attire guidance, and flowers">
         </div>
         <section class="standalone-rsvp" aria-labelledby="rsvp-title">
           <header class="standalone-rsvp-heading">
@@ -50,6 +50,7 @@
               <span>Full name</span>
               <input id="full-name" name="fullName" autocomplete="off" autocapitalize="words" spellcheck="false" maxlength="120" placeholder="Your full name" required>
             </label>
+            <p class="form-message invite-access-message" id="invite-access-message" role="status" aria-live="polite"></p>
             <label class="field" for="contact">
               <span>Email or phone number</span>
               <input id="contact" name="contact" autocomplete="off" maxlength="254" placeholder="Email or phone number" required>
@@ -85,7 +86,7 @@
         <div class="plus-one-dialog-content">
           <p class="kicker">Your party</p>
           <h2 id="plus-one-title">Add guests</h2>
-          <p class="plus-one-limit">Up to 4 additional guests, 5 people total. Add an email to your RSVP for the final decision.</p>
+          <p class="plus-one-limit"><span id="plus-one-limit">Only invited guests can RSVP. Your host sets your additional guest limit.</span> Add an email to your RSVP for the final decision.</p>
           <p class="plus-one-note">No kids allowed.</p>
           <div class="plus-one-fields" id="plus-one-fields"></div>
           <button class="plus-one-add" id="plus-one-add" type="button">+ Add another guest</button>
@@ -132,6 +133,26 @@
             <p id="rsvp-count">0 requests to review</p>
             <button class="text-button" id="host-logout" type="button">Sign out</button>
           </div>
+          <section class="invitation-management" aria-labelledby="invitation-management-title">
+            <div class="invitation-management-heading">
+              <p class="kicker">The invite list</p>
+              <h2 id="invitation-management-title">Invitation management</h2>
+              <p>Only guests on this list can RSVP. Set how many additional guests each invitation allows.</p>
+            </div>
+            <form class="invitation-add-form" id="invitation-add-form">
+              <label class="field" for="invitee-name">
+                <span>Invitee name</span>
+                <input id="invitee-name" name="name" maxlength="120" autocomplete="off" required>
+              </label>
+              <label class="field" for="invitee-plus-ones">
+                <span>Allowed plus-ones</span>
+                <input id="invitee-plus-ones" name="allowedPlusOnes" type="number" min="0" max="20" value="0" required>
+              </label>
+              <button class="button button-gold" type="submit">Add invite</button>
+            </form>
+            <p class="invitation-management-message" id="invitation-management-message" role="status" aria-live="polite"></p>
+            <div class="invitation-list" id="invitation-list"></div>
+          </section>
           <nav class="dashboard-tabs" aria-label="RSVP status">
             <button class="dashboard-tab is-active" id="pending-rsvps-tab" type="button" aria-pressed="true">Needs review (0)</button>
             <button class="dashboard-tab" id="finalized-rsvps-tab" type="button" aria-pressed="false">Finalized (0)</button>

@@ -4,3 +4,4 @@ __pycache__/
 .env
 .venv/
 data/rsvps.json
+data/invitations.json

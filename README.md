@@ -6,7 +6,8 @@ A mobile-first interactive wedding invitation with:
 - Animated envelope opening
 - Invitation appears after the envelope opens
 - Configurable invitation details (names, date, venue, schedule, dress code)
-- Guest RSVP form with up to four named additional guests (five people total)
+- Host-managed invite list with a per-invitation limit of up to 20 named additional guests
+- Guest RSVP form that checks invitation eligibility by name and enforces each invitation's plus-one limit
 - Host dashboard to selectively approve or decline each requested guest
 - Final itemized RSVP notifications via Resend
 
@@ -27,6 +28,8 @@ Open [http://localhost:8080](http://localhost:8080). The server is already desig
 Guests use the invitation link. The host dashboard is separate at [http://localhost:8080/host](http://localhost:8080/host) when running locally. The dashboard password comes from the server environment and is never embedded in the client.
 
 The host dashboard shows RSVP requests that still need review by default. RSVPs with no additional guest requests appear under **Finalized** automatically, as do requests after guest decisions are finalized. Guests who cannot attend appear in a separate **Can't attend** tab.
+
+The host dashboard also manages the invite list. Add each invitee with an allowed number of additional guests (0–20). Guests who are not on the list cannot RSVP, and each invited guest's plus-one limit is checked again on the server when an RSVP is submitted. Local invitation records are stored in [`data/invitations.json`](./data/invitations.json); when `DATABASE_URL` is configured, invitation records are stored in PostgreSQL.
 
 ## Customize for another wedding
 

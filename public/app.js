@@ -7,6 +7,8 @@ const elements = {
   backToInvitation: document.querySelector("#back-to-invitation"),
   rsvpForm: document.querySelector("#rsvp-form"),
   rsvpMessage: document.querySelector("#rsvp-message"),
+  fullName: document.querySelector("#full-name"),
+  inviteAccessMessage: document.querySelector("#invite-access-message"),
   plusOneOpen: document.querySelector("#plus-one-open"),
   plusOneDialog: document.querySelector("#plus-one-dialog"),
   plusOneFields: document.querySelector("#plus-one-fields"),
@@ -14,6 +16,7 @@ const elements = {
   plusOneAdd: document.querySelector("#plus-one-add"),
   plusOneSave: document.querySelector("#plus-one-save"),
   plusOneCancel: document.querySelector("#plus-one-cancel"),
+  plusOneLimit: document.querySelector("#plus-one-limit"),
   hostLogin: document.querySelector("#host-login"),
   hostPassword: document.querySelector('#host-login input[name="password"]'),
   hostPasswordToggle: document.querySelector("#toggle-host-password"),
@@ -25,6 +28,9 @@ const elements = {
   rsvpCount: document.querySelector("#rsvp-count"),
   dashboardList: document.querySelector("#admin-rsvp-list"),
   dashboardMessage: document.querySelector("#dashboard-message"),
+  invitationAddForm: document.querySelector("#invitation-add-form"),
+  invitationManagementMessage: document.querySelector("#invitation-management-message"),
+  invitationList: document.querySelector("#invitation-list"),
   toast: document.querySelector("#toast")
 };
 
@@ -33,7 +39,13 @@ let toastTimer;
 let plusOneNames = [];
 let plusOneDraft = [];
 let dashboardRsvps = [];
+let dashboardInvitations = [];
+let selectedInvitationId = "";
 let activeRsvpTab = "pending";
+let invitationLookupId = 0;
+let invitationLookupTimer;
+let inviteEligibility = { nameKey: "", invited: false, allowedPlusOnes: 0 };
+const MAX_PLUS_ONES = 20;
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 function setMessage(element, message, isError = false) {
@@ -100,10 +112,11 @@ function renderPlusOneFields() {
     row.append(label, remove);
     elements.plusOneFields.append(row);
   });
-  elements.plusOneAdd.disabled = plusOneDraft.length >= 4;
+  elements.plusOneAdd.disabled = plusOneDraft.length >= inviteEligibility.allowedPlusOnes;
 }
 
 function openPlusOneDialog() {
+  if (!inviteEligibility.invited || inviteEligibility.allowedPlusOnes === 0) return;
   plusOneDraft = [...plusOneNames];
   if (!plusOneDraft.length) plusOneDraft.push("");
   renderPlusOneFields();
@@ -111,6 +124,76 @@ function openPlusOneDialog() {
   elements.plusOneDialog.showModal();
   elements.plusOneFields.querySelector("input")?.focus();
 }
+
+function updatePlusOneButton() {
+  const count = plusOneNames.length;
+  const currentNameKey = elements.fullName.value.trim().replace(/\s+/g, " ").toLocaleLowerCase();
+  const invitationMatchesInput = inviteEligibility.invited && inviteEligibility.nameKey === currentNameKey;
+  elements.plusOneOpen.textContent = count
+    ? `${count} ${count === 1 ? "guest" : "guests"} added`
+    : "Add guests";
+  const canAddGuests = invitationMatchesInput && inviteEligibility.allowedPlusOnes > 0;
+  elements.plusOneOpen.classList.toggle("hidden", !canAddGuests);
+  elements.plusOneOpen.disabled = !canAddGuests;
+  document.querySelector("#rsvp-submit").disabled = !invitationMatchesInput;
+}
+
+function resetInviteEligibility() {
+  clearTimeout(invitationLookupTimer);
+  invitationLookupId += 1;
+  inviteEligibility = { nameKey: "", invited: false, allowedPlusOnes: 0 };
+  plusOneNames = [];
+  updatePlusOneButton();
+  elements.plusOneLimit.textContent = "Your invitation determines how many additional guests you may request.";
+  setMessage(elements.inviteAccessMessage, "");
+}
+
+async function checkInvitation(name) {
+  clearTimeout(invitationLookupTimer);
+  const cleanedName = name.trim().replace(/\s+/g, " ");
+  const nameKey = cleanedName.toLocaleLowerCase();
+  const requestId = ++invitationLookupId;
+  if (!cleanedName) {
+    resetInviteEligibility();
+    return;
+  }
+
+  setMessage(elements.inviteAccessMessage, "Checking your invitation…");
+  try {
+    const result = await requestJson("/api/invitations/lookup", {
+      method: "POST",
+      body: JSON.stringify({ name: cleanedName })
+    });
+    if (requestId !== invitationLookupId) return;
+    inviteEligibility = {
+      nameKey,
+      invited: result.invited,
+      allowedPlusOnes: result.allowedPlusOnes
+    };
+    if (!result.invited) {
+      elements.plusOneLimit.textContent = "Only guests on the host's invitation list may request additional guests.";
+      setMessage(
+        elements.inviteAccessMessage,
+        "We couldn't find an invitation for this name. Only invited guests can RSVP. Please check the name or contact the hosts."
+      );
+    } else if (result.allowedPlusOnes === 0) {
+      elements.plusOneLimit.textContent = "Your invitation does not include additional guests.";
+      setMessage(elements.inviteAccessMessage, "Your invitation allows no additional guests.");
+    } else {
+      const guestLabel = result.allowedPlusOnes === 1 ? "guest" : "guests";
+      elements.plusOneLimit.textContent = `You may request up to ${result.allowedPlusOnes} additional ${guestLabel}.`;
+      setMessage(elements.inviteAccessMessage, `Your invitation allows up to ${result.allowedPlusOnes} additional ${guestLabel}.`);
+    }
+    updatePlusOneButton();
+  } catch (error) {
+    if (requestId !== invitationLookupId) return;
+    inviteEligibility = { nameKey, invited: false, allowedPlusOnes: 0 };
+    updatePlusOneButton();
+    setMessage(elements.inviteAccessMessage, error.message, true);
+  }
+}
+
+updatePlusOneButton();
 
 async function requestJson(url, options = {}) {
   const response = await fetch(url, {
@@ -170,10 +253,34 @@ attendanceInputs.forEach((input) => {
   });
 });
 
+elements.fullName.addEventListener("input", () => {
+  const nameKey = elements.fullName.value.trim().replace(/\s+/g, " ").toLocaleLowerCase();
+  if (nameKey !== inviteEligibility.nameKey) {
+    resetInviteEligibility();
+    if (nameKey) {
+      invitationLookupTimer = setTimeout(() => checkInvitation(elements.fullName.value), 400);
+    }
+  }
+});
+elements.fullName.addEventListener("blur", () => {
+  checkInvitation(elements.fullName.value);
+});
+
 elements.rsvpForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   if (document.body.classList.contains("host-viewing-invitation")) return;
   const submit = document.querySelector("#rsvp-submit");
+  await checkInvitation(elements.fullName.value);
+  const currentNameKey = elements.fullName.value.trim().replace(/\s+/g, " ").toLocaleLowerCase();
+  if (!inviteEligibility.invited || inviteEligibility.nameKey !== currentNameKey) {
+    setMessage(
+      elements.rsvpMessage,
+      "We couldn't find an invitation for this name. Only invited guests can RSVP. Please check the name or contact the hosts.",
+      true
+    );
+    updatePlusOneButton();
+    return;
+  }
   const form = new FormData(elements.rsvpForm);
   const contact = splitContact(form.get("contact"));
   const attendance = form.get("attendance");
@@ -192,8 +299,7 @@ elements.rsvpForm?.addEventListener("submit", async (event) => {
   try {
     await requestJson("/api/rsvps", { method: "POST", body: JSON.stringify(payload) });
     elements.rsvpForm.reset();
-    plusOneNames = [];
-    elements.plusOneOpen.textContent = "Add guests";
+    resetInviteEligibility();
     setMessage(
       elements.rsvpMessage,
       payload.plusOnes.length
@@ -203,13 +309,13 @@ elements.rsvpForm?.addEventListener("submit", async (event) => {
   } catch (error) {
     setMessage(elements.rsvpMessage, error.message, true);
   } finally {
-    submit.disabled = false;
+    updatePlusOneButton();
   }
 });
 
 elements.plusOneOpen.addEventListener("click", openPlusOneDialog);
 elements.plusOneAdd.addEventListener("click", () => {
-  if (plusOneDraft.length < 4) {
+  if (plusOneDraft.length < inviteEligibility.allowedPlusOnes) {
     plusOneDraft = [...elements.plusOneFields.querySelectorAll("input")].map((field) => field.value);
     plusOneDraft.push("");
     renderPlusOneFields();
@@ -220,15 +326,21 @@ elements.plusOneCancel.addEventListener("click", () => elements.plusOneDialog.cl
 elements.plusOneSave.addEventListener("click", () => {
   const inputs = [...elements.plusOneFields.querySelectorAll("input")];
   const names = inputs.map((input) => input.value.trim());
+  if (names.length > inviteEligibility.allowedPlusOnes) {
+    setMessage(
+      elements.plusOneMessage,
+      `Your invitation allows up to ${inviteEligibility.allowedPlusOnes} additional guests.`,
+      true
+    );
+    return;
+  }
   if (names.some((name) => !name)) {
     setMessage(elements.plusOneMessage, "Enter a name for each guest or remove the empty field.", true);
     inputs.find((input) => !input.value.trim())?.focus();
     return;
   }
   plusOneNames = names;
-  elements.plusOneOpen.textContent = names.length
-    ? `${names.length} ${names.length === 1 ? "guest" : "guests"} added`
-    : "Add guests";
+  updatePlusOneButton();
   elements.plusOneDialog.close();
 });
 
@@ -349,6 +461,165 @@ function renderRsvps(rsvps) {
   renderRsvpCards(visibleRsvps, emptyMessage);
 }
 
+function renderInvitations(invitations) {
+  dashboardInvitations = invitations;
+  if (!invitations.length) {
+    elements.invitationList.innerHTML = '<p class="invitation-list-empty">No invitations yet. Add the first invitee above.</p>';
+    return;
+  }
+
+  if (!invitations.some((invitation) => invitation.id === selectedInvitationId)) {
+    selectedInvitationId = "";
+  }
+  const selectedInvitation = invitations.find((invitation) => invitation.id === selectedInvitationId);
+  const details = selectedInvitation ? `
+    <article class="invitation-item" data-invitation-id="${escapeHtml(selectedInvitation.id)}">
+      <div class="invitation-item-summary">
+        <div>
+          <h3>${escapeHtml(selectedInvitation.name)}</h3>
+          <p>Allowed plus-ones: ${selectedInvitation.allowedPlusOnes} · ${
+            selectedInvitation.rsvpStatus === "attending"
+              ? "Joyfully accepts"
+              : selectedInvitation.rsvpStatus === "declining"
+                ? "Regretfully declines"
+                : "No RSVP yet"
+          } · ${selectedInvitation.requestedPlusOnes} ${
+            selectedInvitation.requestedPlusOnes === 1 ? "guest" : "guests"
+          } requested</p>
+        </div>
+        <div class="invitation-item-actions">
+          <button class="invitation-edit-button" type="button">Edit details</button>
+          <button class="invitation-remove-button" type="button">Remove invite</button>
+        </div>
+      </div>
+      <form class="invitation-edit-form hidden">
+        <label class="field">
+          <span>Invitee name</span>
+          <input name="name" maxlength="120" value="${escapeHtml(selectedInvitation.name)}" required>
+        </label>
+        <label class="field">
+          <span>Allowed plus-ones</span>
+          <input name="allowedPlusOnes" type="number" min="0" max="20" value="${selectedInvitation.allowedPlusOnes}" required>
+        </label>
+        <div class="invitation-edit-actions">
+          <button class="invitation-edit-cancel" type="button">Cancel</button>
+          <button class="invitation-edit-save" type="submit">Save changes</button>
+        </div>
+      </form>
+    </article>` : "";
+  elements.invitationList.innerHTML = `
+    <div class="invitation-select-field">
+      <label for="invitation-select"><span>Select an invitee</span></label>
+      <div class="invitation-select-controls">
+        <select id="invitation-select">
+          <option value="" disabled hidden ${selectedInvitationId ? "" : "selected"}>Choose a guest</option>
+          ${invitations.map((invitation) => `
+            <option value="${escapeHtml(invitation.id)}" ${invitation.id === selectedInvitationId ? "selected" : ""}>
+              ${escapeHtml(invitation.name)}
+            </option>`).join("")}
+        </select>
+        ${selectedInvitationId ? '<button class="invitation-clear-selection" type="button">Clear</button>' : ""}
+      </div>
+    </div>
+    ${details}`;
+}
+
+elements.invitationList.addEventListener("change", (event) => {
+  if (event.target.id !== "invitation-select") return;
+  selectedInvitationId = event.target.value;
+  renderInvitations(dashboardInvitations);
+});
+
+elements.invitationList.addEventListener("click", (event) => {
+  if (!event.target.closest(".invitation-clear-selection")) return;
+  selectedInvitationId = "";
+  renderInvitations(dashboardInvitations);
+});
+
+elements.invitationAddForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const form = new FormData(elements.invitationAddForm);
+  const submit = elements.invitationAddForm.querySelector("button[type='submit']");
+  submit.disabled = true;
+  setMessage(elements.invitationManagementMessage, "Adding invitation…");
+  try {
+    const result = await requestJson("/api/admin/invitations", {
+      method: "POST",
+      body: JSON.stringify({
+        name: String(form.get("name") || "").trim(),
+        allowedPlusOnes: Number(form.get("allowedPlusOnes"))
+      })
+    });
+    selectedInvitationId = result.invitation.id;
+    elements.invitationAddForm.reset();
+    elements.invitationAddForm.elements.allowedPlusOnes.value = "0";
+    await loadDashboard();
+    setMessage(elements.invitationManagementMessage, "Invitation added.");
+  } catch (error) {
+    setMessage(elements.invitationManagementMessage, error.message, true);
+  } finally {
+    submit.disabled = false;
+  }
+});
+
+elements.invitationList.addEventListener("click", async (event) => {
+  const editButton = event.target.closest(".invitation-edit-button");
+  const cancelButton = event.target.closest(".invitation-edit-cancel");
+  if (editButton || cancelButton) {
+    const item = event.target.closest(".invitation-item");
+    const editForm = item.querySelector(".invitation-edit-form");
+    editForm.classList.toggle("hidden", Boolean(cancelButton));
+    if (editButton) editForm.elements.name.focus();
+    return;
+  }
+
+  const removeButton = event.target.closest(".invitation-remove-button");
+  if (!removeButton) return;
+  const item = removeButton.closest(".invitation-item");
+  const invitation = dashboardInvitations.find((entry) => entry.id === item.dataset.invitationId);
+  if (!invitation || !window.confirm(`Remove the invitation for ${invitation.name}?`)) return;
+
+  removeButton.disabled = true;
+  setMessage(elements.invitationManagementMessage, "Removing invitation…");
+  try {
+    await requestJson(`/api/admin/invitations/${encodeURIComponent(invitation.id)}`, { method: "DELETE" });
+    selectedInvitationId = "";
+    await loadDashboard();
+    setMessage(elements.invitationManagementMessage, `Invitation for ${invitation.name} removed.`);
+  } catch (error) {
+    setMessage(elements.invitationManagementMessage, error.message, true);
+    removeButton.disabled = false;
+  }
+});
+
+elements.invitationList.addEventListener("submit", async (event) => {
+  const editForm = event.target.closest(".invitation-edit-form");
+  if (!editForm) return;
+  event.preventDefault();
+  const item = editForm.closest(".invitation-item");
+  const invitation = dashboardInvitations.find((entry) => entry.id === item.dataset.invitationId);
+  if (!invitation) return;
+
+  const form = new FormData(editForm);
+  const submit = editForm.querySelector("button[type='submit']");
+  submit.disabled = true;
+  setMessage(elements.invitationManagementMessage, "Saving invitation…");
+  try {
+    await requestJson(`/api/admin/invitations/${encodeURIComponent(invitation.id)}`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        name: String(form.get("name") || "").trim(),
+        allowedPlusOnes: Number(form.get("allowedPlusOnes"))
+      })
+    });
+    await loadDashboard();
+    setMessage(elements.invitationManagementMessage, "Invitation updated.");
+  } catch (error) {
+    setMessage(elements.invitationManagementMessage, error.message, true);
+    submit.disabled = false;
+  }
+});
+
 elements.pendingRsvpsTab.addEventListener("click", () => {
   activeRsvpTab = "pending";
   renderRsvps(dashboardRsvps);
@@ -427,13 +698,19 @@ elements.dashboardList.addEventListener("submit", async (event) => {
 
 async function loadDashboard() {
   elements.dashboardList.innerHTML = "";
+  elements.invitationList.innerHTML = "";
   setMessage(elements.dashboardMessage, "Loading your guest list…");
   try {
-    const result = await requestJson("/api/admin/rsvps");
+    const [result, invitationResult] = await Promise.all([
+      requestJson("/api/admin/rsvps"),
+      requestJson("/api/admin/invitations")
+    ]);
     elements.hostLogin.classList.add("hidden");
     elements.dashboard.classList.remove("hidden");
     renderRsvps(result.rsvps);
+    renderInvitations(invitationResult.invitations);
     setMessage(elements.dashboardMessage, "");
+    setMessage(elements.invitationManagementMessage, "");
   } catch (error) {
     elements.dashboard.classList.add("hidden");
     elements.hostLogin.classList.remove("hidden");
