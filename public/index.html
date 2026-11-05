@@ -22,7 +22,7 @@
 
       <section class="invitation hidden" id="invitation">
         <div class="invitation-art-crop">
-          <img class="invitation-art" src="/images/invitation-updated.png" width="1080" height="8000" alt="Aprille and Joemarie's wedding invitation with venue, parking guide, attire guidance, and flowers">
+          <img class="invitation-art" src="/images/invitation-update-1.png" alt="Wedding invitation with event details, sponsors, ceremony and reception information, and attire guidance">           <img class="invitation-art" src="/images/invitation-update-2.png" alt="Wedding gift information and frequently asked questions">
         </div>
         <section class="standalone-rsvp" aria-labelledby="rsvp-title">
           <header class="standalone-rsvp-heading">
@@ -30,16 +30,16 @@
             <h2 id="rsvp-title">RSVP</h2>
             <p>Please reply by <time id="rsvp-deadline">November 20, 2026</time></p>
           </header>
-          <p class="host-preview-note">Host preview — RSVP responses are disabled.</p>
+          <p class="rsvp-guide">Enter your first name first, followed by your last name. Please provide your email address.</p>           <p class="host-preview-note">Host preview — RSVP responses are disabled.</p>
           <form id="rsvp-form" autocomplete="off" novalidate>
             <label class="field" for="full-name">
               <span>Full name</span>
-              <input id="full-name" name="fullName" autocomplete="off" autocapitalize="words" spellcheck="false" maxlength="120" placeholder="Your full name" required>
+              <input id="full-name" name="fullName" autocomplete="off" autocapitalize="words" spellcheck="false" maxlength="120" placeholder="e.g. Joem De Leon Jr." required>
             </label>
             <p class="form-message invite-access-message" id="invite-access-message" role="status" aria-live="polite"></p>
             <label class="field" for="contact">
-              <span>Email or phone number</span>
-              <input id="contact" name="contact" autocomplete="off" maxlength="254" placeholder="Email or phone number" required>
+              <span>Email address</span>
+              <input id="contact" name="contact" type="email" autocomplete="email" inputmode="email" maxlength="254" placeholder="e.g. joemarieaprille@gmail.com" required>
             </label>
             <fieldset class="attendance-field">
               <legend class="sr-only">Will you attend?</legend>
