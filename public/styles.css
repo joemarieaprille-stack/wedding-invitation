@@ -406,22 +406,9 @@ main {
   border: 0;
 }
 
-.invitation-art-crop {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 1080 / 8000;
-  overflow: hidden;
-  background: var(--paper);
-}
+.invitation-art-crop { position: relative; width: 100%; overflow: clip; background: var(--paper); }
 
-.invitation-art {
-  position: absolute;
-  top: 0;
-  left: 0;
-  display: block;
-  width: 100%;
-  height: auto;
-}
+.invitation-art { display: block; width: 100%; height: auto; }
 
 .standalone-rsvp {
   padding: 24px 24px 56px;
@@ -474,7 +461,7 @@ body.host-viewing-invitation .host-preview-note {
   font-size: 11px;
 }
 
-.standalone-rsvp form { margin: 0; }
+.rsvp-guide { margin: 0 0 18px; color: var(--ink-soft); font-family: var(--serif); font-size: 13px; line-height: 1.45; text-align: center; } .standalone-rsvp form { margin: 0; }
 .standalone-rsvp .field {
   gap: 5px;
   margin-bottom: 10px;
@@ -546,16 +533,7 @@ body.host-viewing-invitation .host-preview-note {
   background: rgb(216 196 255 / 36%);
 }
 
-.standalone-rsvp .plus-one-trigger {
-  width: 100%;
-  min-height: 36px;
-  margin: 0 0 8px;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  color: var(--gold-deep);
-  font-size: 10px;
-}
+.standalone-rsvp .plus-one-trigger { width: 100%; min-height: 36px; margin: 0 0 8px; border: 1px solid rgb(216 196 255 / 55%); border-radius: 999px; background: transparent; color: var(--gold-deep); font-size: 10px; }
 
 .standalone-rsvp .plus-one-trigger:hover { text-decoration: underline; }
 .standalone-rsvp #rsvp-submit {
