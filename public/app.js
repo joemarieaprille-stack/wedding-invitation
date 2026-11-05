@@ -250,7 +250,7 @@ elements.fullName.addEventListener("blur", () => {
 
 elements.rsvpForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
-  if (document.body.classList.contains("host-viewing-invitation")) return;
+  if (document.body.classList.contains("host-viewing-invitation")) return; if (!elements.rsvpForm.reportValidity()) return;
   const submit = document.querySelector("#rsvp-submit");
   await checkInvitation(elements.fullName.value);
   const currentNameKey = elements.fullName.value.trim().replace(/\s+/g, " ").toLocaleLowerCase();
@@ -264,12 +264,12 @@ elements.rsvpForm?.addEventListener("submit", async (event) => {
     return;
   }
   const form = new FormData(elements.rsvpForm);
-  const contact = splitContact(form.get("contact"));
+
   const attendance = form.get("attendance");
   const payload = {
     fullName: String(form.get("fullName") || "").trim(),
-    email: contact.email,
-    phone: contact.phone,
+    email: String(form.get("contact") || "").trim(),
+    phone: "",
     attendance,
     dietaryNotes: String(form.get("dietaryNotes") || "").trim(),
     songRequest: String(form.get("songRequest") || "").trim(),
