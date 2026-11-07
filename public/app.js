@@ -498,6 +498,7 @@ function renderPrintGroups(groups, emptyMessage) {
     ${Array.from({ length: rowCount }, (_, index) => `
       <div class="attendees-print-row">
         ${renderPerson(columns[0][index])}
+        <span class="attendees-print-center-gap" aria-hidden="true"></span>
         ${renderPerson(columns[1][index])}
       </div>`).join("")}
   </div>`;

@@ -1645,15 +1645,13 @@ body.showing-invitation main { width: min(100%, 430px); }
 
 .attendees-print-row {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  column-gap: 8mm;
+  grid-template-columns: minmax(0, 1fr) 30mm minmax(0, 1fr);
   line-height: 1.15;
 }
 
-.attendees-print-row > :nth-child(2) { transform: translateX(8mm); }
-.attendees-print-row > :first-child { transform: translateX(2mm); }
-.attendees-print-accepted .attendees-print-row { column-gap: 30mm; }
-.attendees-print-declined .attendees-print-row { column-gap: 30mm; }
+.attendees-print-center-gap {
+  min-width: 0;
+}
 
 .attendees-print-person {
   display: block;
