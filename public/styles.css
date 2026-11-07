@@ -1650,7 +1650,7 @@ body.showing-invitation main { width: min(100%, 430px); }
 
 .attendees-print-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 30mm minmax(0, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   line-height: 1.15;
 }
 
