@@ -485,14 +485,16 @@ function renderPrintGroups(groups, emptyMessage) {
   if (!groups.length) return `<p class="attendees-print-empty">${escapeHtml(emptyMessage)}</p>`;
   const columns = [[], []];
   groups.forEach((group, index) => {
-    columns[index % 2].push({ name: group.name, isPlusOne: false });
+    const column = columns[index % 2];
+    column.push({ name: group.name, isPlusOne: false });
     group.guests.forEach((name) => {
-      columns[index % 2].push({ name, isPlusOne: true });
+      column.push({ name, isPlusOne: true });
     });
+    column[column.length - 1].isGroupEnd = true;
   });
   const rowCount = Math.max(...columns.map((column) => column.length));
   const renderPerson = (person) => person
-    ? `<span class="attendees-print-person${person.isPlusOne ? " is-plus-one" : ""}">${escapeHtml(person.name)}</span>`
+    ? `<span class="attendees-print-person${person.isPlusOne ? " is-plus-one" : ""}${person.isGroupEnd ? " is-group-end" : ""}">${escapeHtml(person.name)}</span>`
     : '<span aria-hidden="true"></span>';
   return `<div class="attendees-print-rows attendees-print-rows-${rowCount}">
     ${Array.from({ length: rowCount }, (_, index) => `

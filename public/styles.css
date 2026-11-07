@@ -1668,6 +1668,10 @@ body.showing-invitation main { width: min(100%, 430px); }
   padding-left: 4mm;
 }
 
+.attendees-print-person.is-group-end {
+  margin-bottom: 1mm;
+}
+
 .attendees-print-person.is-plus-one::before {
   content: "• ";
 }
