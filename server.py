@@ -1025,6 +1025,7 @@ class WeddingRequestHandler(BaseHTTPRequestHandler):
         content_type, _ = mimetypes.guess_type(str(file_path))
         headers = {
             "Content-Type": content_type or "application/octet-stream",
+            "Cache-Control": "no-store",
             "X-Content-Type-Options": "nosniff",
             "Referrer-Policy": "strict-origin-when-cross-origin",
             "Content-Security-Policy": (
