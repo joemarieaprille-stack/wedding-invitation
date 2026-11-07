@@ -1643,6 +1643,11 @@ body.showing-invitation main { width: min(100%, 430px); }
   justify-content: flex-start;
 }
 
+.attendees-print-declined .attendees-print-rows {
+  height: auto;
+  justify-content: flex-start;
+}
+
 .attendees-print-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 30mm minmax(0, 1fr);
