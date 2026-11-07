@@ -1653,7 +1653,7 @@ body.showing-invitation main { width: min(100%, 430px); }
 .attendees-print-accepted .attendees-print-rows-3,
 .attendees-print-accepted .attendees-print-rows-4 {
   position: absolute;
-  inset: 15% 0;
+  inset: 30% 0;
   height: auto;
 }
 
