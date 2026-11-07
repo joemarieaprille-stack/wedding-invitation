@@ -1671,20 +1671,6 @@ body.showing-invitation main { width: min(100%, 430px); }
   font-size: 8pt;
 }
 
-.attendees-print-sample-label {
-  width: 100%;
-  margin: 0;
-  color: #777;
-  font-family: var(--sans);
-  font-size: 5.5pt;
-  font-style: italic;
-  text-align: center;
-}
-
-.attendees-print-sample {
-  color: #777;
-}
-
 .rsvp-card-admin,
 .rsvp-card-item {
   margin: 14px 0;
@@ -1858,8 +1844,7 @@ body.showing-invitation main { width: min(100%, 430px); }
   }
 
   .attendees-preview-toolbar { display: none !important; }
-  .attendees-print-sample-label,
-  .attendees-print-sample { display: none !important; }
+  .attendees-print-empty { display: none !important; }
 
   #attendees-print {
     display: block;
