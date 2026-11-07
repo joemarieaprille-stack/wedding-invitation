@@ -1638,6 +1638,11 @@ body.showing-invitation main { width: min(100%, 430px); }
   justify-content: space-between;
 }
 
+.attendees-print-accepted .attendees-print-rows {
+  height: auto;
+  justify-content: flex-start;
+}
+
 .attendees-print-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
