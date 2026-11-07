@@ -1666,10 +1666,20 @@ body.showing-invitation main { width: min(100%, 430px); }
 
 .attendees-print-row > :first-child {
   padding-left: 2mm;
+  text-align: right;
 }
 
 .attendees-print-person.is-plus-one {
   padding-left: 4mm;
+}
+
+.attendees-print-row > :first-child.is-plus-one {
+  position: relative;
+}
+
+.attendees-print-row > :first-child.is-plus-one::before {
+  position: absolute;
+  left: 0;
 }
 
 .attendees-print-person.is-group-end {
