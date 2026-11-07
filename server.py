@@ -999,10 +999,15 @@ class WeddingRequestHandler(BaseHTTPRequestHandler):
 
     def serve_static(self, route, head_only=False):
         decoded_route = unquote(route)
-        relative_path = "index.html" if decoded_route == "/" else decoded_route.lstrip("/")
-        file_path = (PUBLIC_DIR / relative_path).resolve()
+        if decoded_route == "/print-assets/attendees.png":
+            static_root = ROOT / "asset"
+            relative_path = "ATTENDEES.png"
+        else:
+            static_root = PUBLIC_DIR
+            relative_path = "index.html" if decoded_route == "/" else decoded_route.lstrip("/")
+        file_path = (static_root / relative_path).resolve()
         try:
-            file_path.relative_to(PUBLIC_DIR.resolve())
+            file_path.relative_to(static_root.resolve())
         except ValueError:
             json_response(self, 403, {"error": "Forbidden."})
             return

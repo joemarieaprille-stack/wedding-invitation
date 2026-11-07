@@ -25,6 +25,12 @@ const elements = {
   declinedRsvpsTab: document.querySelector("#declined-rsvps-tab"),
   rsvpCount: document.querySelector("#rsvp-count"),
   dashboardList: document.querySelector("#admin-rsvp-list"),
+  printGuestList: document.querySelector("#print-guest-list"),
+  attendeesPreview: document.querySelector("#attendees-preview"),
+  attendeesPreviewNote: document.querySelector("#attendees-preview-note"),
+  closeAttendeesPreview: document.querySelector("#close-attendees-preview"),
+  printAttendeesPreview: document.querySelector("#print-attendees-preview"),
+  attendeesPrint: document.querySelector("#attendees-print"),
   dashboardMessage: document.querySelector("#dashboard-message"),
   invitationAddForm: document.querySelector("#invitation-add-form"),
   invitationManagementMessage: document.querySelector("#invitation-management-message"),
@@ -443,6 +449,133 @@ function renderRsvps(rsvps) {
   renderRsvpCards(visibleRsvps, emptyMessage);
 }
 
+function paginateGuestGroups(groups, rowLimit) {
+  const pages = [];
+  let page = [];
+  let rows = 0;
+  groups.forEach((group) => {
+    const guestChunkSize = rowLimit - 1;
+    const chunks = group.guests.length
+      ? Array.from(
+        { length: Math.ceil(group.guests.length / guestChunkSize) },
+        (_, index) => group.guests.slice(index * guestChunkSize, (index + 1) * guestChunkSize)
+      )
+      : [[]];
+    chunks.forEach((guests) => {
+      const groupRows = 1 + guests.length;
+      if (page.length && rows + groupRows > rowLimit) {
+        pages.push(page);
+        page = [];
+        rows = 0;
+      }
+      page.push({ name: group.name, guests });
+      rows += groupRows;
+      if (rows === rowLimit) {
+        pages.push(page);
+        page = [];
+        rows = 0;
+      }
+    });
+  });
+  if (page.length) pages.push(page);
+  return pages;
+}
+
+function renderPrintGroups(groups, emptyMessage) {
+  if (!groups.length) return `<p class="attendees-print-empty">${escapeHtml(emptyMessage)}</p>`;
+  const columns = [[], []];
+  groups.forEach((group, index) => {
+    columns[index % 2].push({ name: group.name, isPlusOne: false, isSample: group.isSample === true });
+    group.guests.forEach((name) => {
+      columns[index % 2].push({ name, isPlusOne: true, isSample: group.isSample === true });
+    });
+  });
+  const rowCount = Math.max(...columns.map((column) => column.length));
+  const renderPerson = (person) => person
+    ? `<span class="attendees-print-person${person.isPlusOne ? " is-plus-one" : ""}${person.isSample ? " attendees-print-sample" : ""}">${escapeHtml(person.name)}</span>`
+    : '<span aria-hidden="true"></span>';
+  return `<div class="attendees-print-rows attendees-print-rows-${rowCount}">
+    ${Array.from({ length: rowCount }, (_, index) => `
+      <div class="attendees-print-row">
+        ${renderPerson(columns[0][index])}
+        ${renderPerson(columns[1][index])}
+      </div>`).join("")}
+  </div>`;
+}
+
+function renderPrintPreviewGroups(groups, emptyMessage, sample, showSample) {
+  if (groups.length) return renderPrintGroups(groups, emptyMessage);
+  if (!showSample) return "";
+  return `
+    <p class="attendees-print-empty">${escapeHtml(emptyMessage)}</p>
+    <p class="attendees-print-sample-label">Example entries · preview only</p>
+    ${renderPrintGroups([{ ...sample, isSample: true }], emptyMessage)}`;
+}
+
+async function previewFinalizedGuestList() {
+  const accepted = [];
+  const declined = [];
+  dashboardRsvps.forEach((rsvp) => {
+    const plusOnes = Array.isArray(rsvp.plusOnes) ? rsvp.plusOnes : [];
+    if (rsvp.attendance === "declining") {
+      declined.push({ name: rsvp.fullName, guests: [] });
+      return;
+    }
+    if (plusOnes.length && rsvp.plusOneReviewFinalized !== true) return;
+
+    accepted.push({
+      name: rsvp.fullName,
+      guests: plusOnes.filter((guest) => guest.status === "approved").map((guest) => guest.name)
+    });
+    const declinedPlusOnes = plusOnes.filter((guest) => guest.status === "declined").map((guest) => guest.name);
+    if (declinedPlusOnes.length) declined.push({ name: rsvp.fullName, guests: declinedPlusOnes });
+  });
+
+  const acceptedPages = paginateGuestGroups(accepted, 30);
+  const declinedPages = paginateGuestGroups(declined, 8);
+  const pageCount = Math.max(acceptedPages.length, declinedPages.length, 1);
+  const hasPreviewSamples = accepted.length === 0 || declined.length === 0;
+  elements.attendeesPreviewNote.textContent = hasPreviewSamples
+    ? "Example entries appear in empty sections for preview only; they will not print."
+    : "Review the pages below, then print when they look right.";
+  elements.attendeesPrint.innerHTML = Array.from({ length: pageCount }, (_, index) => `
+    <section class="attendees-print-page" aria-label="Guest list, page ${index + 1}">
+      <img class="attendees-print-artwork" src="/print-assets/attendees.png" alt="">
+      <div class="attendees-print-list attendees-print-accepted">
+        ${renderPrintPreviewGroups(acceptedPages[index] || [], "No finalized attending guests.", {
+          name: "JHIG-ART",
+          guests: ["Miro", "chase", "maxie"]
+        }, accepted.length === 0 && index === 0)}
+      </div>
+      <div class="attendees-print-list attendees-print-declined">
+        ${renderPrintPreviewGroups(declinedPages[index] || [], "No finalized declined guests.", {
+          name: "Sample Decline",
+          guests: []
+        }, declined.length === 0 && index === 0)}
+      </div>
+    </section>`).join("");
+
+  try {
+    await Promise.all([...elements.attendeesPrint.querySelectorAll(".attendees-print-artwork")].map((image) => {
+      if (image.complete) {
+        return image.naturalWidth > 0
+          ? Promise.resolve()
+          : Promise.reject(new Error("The attendee print artwork could not be loaded."));
+      }
+      return new Promise((resolve, reject) => {
+        image.addEventListener("load", resolve, { once: true });
+        image.addEventListener("error", () => {
+          reject(new Error("The attendee print artwork could not be loaded."));
+        }, { once: true });
+      });
+    }));
+    elements.attendeesPreview.showModal();
+  } catch (error) {
+    elements.attendeesPrint.replaceChildren();
+    setMessage(elements.dashboardMessage, error.message, true);
+  }
+}
+
 function renderInvitations(invitations) {
   dashboardInvitations = invitations;
   if (!invitations.length) {
@@ -615,6 +748,14 @@ elements.finalizedRsvpsTab.addEventListener("click", () => {
 elements.declinedRsvpsTab.addEventListener("click", () => {
   activeRsvpTab = "declined";
   renderRsvps(dashboardRsvps);
+});
+
+elements.printGuestList.addEventListener("click", previewFinalizedGuestList);
+elements.closeAttendeesPreview.addEventListener("click", () => elements.attendeesPreview.close());
+elements.printAttendeesPreview.addEventListener("click", () => {
+  document.body.classList.add("is-printing-attendees");
+  window.print();
+  document.body.classList.remove("is-printing-attendees");
 });
 
 elements.dashboardList.addEventListener("click", async (event) => {

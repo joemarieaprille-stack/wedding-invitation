@@ -144,6 +144,9 @@
             <button class="dashboard-tab" id="finalized-rsvps-tab" type="button" aria-pressed="false">Finalized (0)</button>
             <button class="dashboard-tab" id="declined-rsvps-tab" type="button" aria-pressed="false">Can't attend (0)</button>
           </nav>
+          <div class="print-guest-list-actions">
+            <button class="button button-gold" id="print-guest-list" type="button">Print finalized guest list</button>
+          </div>
           <div class="rsvp-list" id="admin-rsvp-list"></div>
           <p class="dashboard-message" id="dashboard-message" role="status"></p>
         </div>
@@ -152,6 +155,19 @@
       </section>
     </main>
 
+    <dialog class="attendees-preview-dialog" id="attendees-preview" aria-labelledby="attendees-preview-title">
+      <div class="attendees-preview-toolbar">
+        <div>
+          <h2 id="attendees-preview-title">Finalized guest list preview</h2>
+          <p id="attendees-preview-note">Review the pages below, then print when they look right.</p>
+        </div>
+        <div class="attendees-preview-actions">
+          <button class="text-button" id="close-attendees-preview" type="button">Close preview</button>
+          <button class="button button-gold" id="print-attendees-preview" type="button">Print</button>
+        </div>
+      </div>
+      <div id="attendees-print"></div>
+    </dialog>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
   </body>
 </html>

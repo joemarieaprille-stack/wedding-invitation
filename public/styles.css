@@ -1516,6 +1516,175 @@ body.showing-invitation main { width: min(100%, 430px); }
   outline-offset: 2px;
 }
 
+.print-guest-list-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin: 8px 0 12px;
+}
+
+.print-guest-list-actions .button {
+  min-height: 38px;
+  padding: 0 16px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+
+.attendees-preview-dialog {
+  width: min(1120px, calc(100vw - 24px));
+  max-width: none;
+  max-height: calc(100dvh - 24px);
+  padding: 0;
+  overflow: auto;
+  border: 0;
+  background: #e9e3da;
+  color: var(--ink);
+  box-shadow: 0 18px 60px rgb(0 0 0 / 28%);
+}
+
+.attendees-preview-dialog::backdrop {
+  background: rgb(25 20 15 / 78%);
+}
+
+.attendees-preview-toolbar {
+  position: sticky;
+  z-index: 1;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 22px;
+  background: #fffdf9;
+  box-shadow: 0 2px 8px rgb(43 36 24 / 12%);
+}
+
+.attendees-preview-toolbar h2 {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 500;
+}
+
+.attendees-preview-toolbar p {
+  margin: 3px 0 0;
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+
+.attendees-preview-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.attendees-preview-actions .button {
+  min-height: 38px;
+  padding: 0 18px;
+  font-size: 10px;
+}
+
+#attendees-print {
+  display: grid;
+  justify-items: center;
+  gap: 18px;
+  padding: 20px;
+}
+
+.attendees-print-page {
+  position: relative;
+  width: min(210mm, 100%);
+  aspect-ratio: 210 / 297;
+  overflow: hidden;
+  color: #111;
+  background: #fff;
+  box-shadow: 0 4px 18px rgb(0 0 0 / 20%);
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.attendees-print-artwork {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+}
+
+.attendees-print-list {
+  position: absolute;
+  left: 13%;
+  width: 74%;
+  overflow: hidden;
+  font-size: 7pt;
+  line-height: 1.15;
+}
+
+.attendees-print-accepted {
+  top: 19%;
+  height: 41%;
+}
+
+.attendees-print-declined {
+  top: 77%;
+  height: 9%;
+  font-size: 6pt;
+  line-height: 1.05;
+}
+
+.attendees-print-rows {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.attendees-print-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 8mm;
+  line-height: 1.15;
+}
+
+.attendees-print-row > :nth-child(2) { transform: translateX(8mm); }
+.attendees-print-row > :first-child { transform: translateX(2mm); }
+.attendees-print-accepted .attendees-print-row { column-gap: 30mm; }
+.attendees-print-declined .attendees-print-row { column-gap: 30mm; }
+
+.attendees-print-person {
+  display: block;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.attendees-print-person.is-plus-one {
+  padding-left: 4mm;
+}
+
+.attendees-print-person.is-plus-one::before {
+  content: "• ";
+}
+
+.attendees-print-empty {
+  width: 100%;
+  margin: 0;
+  text-align: center;
+  font-size: 8pt;
+}
+
+.attendees-print-sample-label {
+  width: 100%;
+  margin: 0;
+  color: #777;
+  font-family: var(--sans);
+  font-size: 5.5pt;
+  font-style: italic;
+  text-align: center;
+}
+
+.attendees-print-sample {
+  color: #777;
+}
+
 .rsvp-card-admin,
 .rsvp-card-item {
   margin: 14px 0;
@@ -1657,6 +1826,61 @@ body.showing-invitation main { width: min(100%, 430px); }
 .toast.is-visible {
   opacity: 1;
   transform: translate(-50%, 0);
+}
+
+@page {
+  size: A4 portrait;
+  margin: 0;
+}
+
+@media print {
+  html,
+  body {
+    width: 210mm;
+    height: auto;
+    margin: 0;
+    background: #fff;
+  }
+
+  body.is-printing-attendees > * { display: none !important; }
+  body.is-printing-attendees > #attendees-preview {
+    position: static;
+    display: block !important;
+    width: 210mm;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    border: 0;
+    background: #fff;
+    box-shadow: none;
+  }
+
+  .attendees-preview-toolbar { display: none !important; }
+  .attendees-print-sample-label,
+  .attendees-print-sample { display: none !important; }
+
+  #attendees-print {
+    display: block;
+    padding: 0;
+  }
+
+  .attendees-print-page {
+    width: 210mm;
+    height: 297mm;
+    aspect-ratio: auto;
+    page-break-after: always;
+    break-after: page;
+    box-shadow: none;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .attendees-print-page:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
 }
 
 @media (max-width: 430px) {
