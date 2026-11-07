@@ -1645,26 +1645,10 @@ body.showing-invitation main { width: min(100%, 430px); }
   line-height: 1.15;
 }
 
+.attendees-print-row > :nth-child(2) { transform: translateX(8mm); }
+.attendees-print-row > :first-child { transform: translateX(2mm); }
 .attendees-print-accepted .attendees-print-row { column-gap: 30mm; }
 .attendees-print-declined .attendees-print-row { column-gap: 30mm; }
-
-.attendees-print-accepted .attendees-print-rows-1,
-.attendees-print-accepted .attendees-print-rows-2,
-.attendees-print-accepted .attendees-print-rows-3,
-.attendees-print-accepted .attendees-print-rows-4 {
-  position: absolute;
-  inset: 30% 0;
-  height: auto;
-}
-
-.attendees-print-accepted .attendees-print-rows-5,
-.attendees-print-accepted .attendees-print-rows-6,
-.attendees-print-accepted .attendees-print-rows-7,
-.attendees-print-accepted .attendees-print-rows-8 {
-  position: absolute;
-  inset: 7.5% 0;
-  height: auto;
-}
 
 .attendees-print-person {
   display: block;
