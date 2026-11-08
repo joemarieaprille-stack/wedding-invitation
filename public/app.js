@@ -449,94 +449,68 @@ function renderRsvps(rsvps) {
   renderRsvpCards(visibleRsvps, emptyMessage);
 }
 
-function paginateGuestGroups(groups, rowLimit) {
+function paginateGuestGroups(groups, rowsPerColumn) {
   const pages = [];
-  let page = [];
-  let rows = 0;
+  let page = [[], []];
+  let rowCounts = [0, 0];
+  let columnIndex = 0;
+
   groups.forEach((group) => {
-    const guestChunkSize = rowLimit - 1;
-    const chunks = group.guests.length
-      ? Array.from(
-        { length: Math.ceil(group.guests.length / guestChunkSize) },
-        (_, index) => group.guests.slice(index * guestChunkSize, (index + 1) * guestChunkSize)
-      )
-      : [[]];
-    chunks.forEach((guests) => {
-      const groupRows = 1 + guests.length;
-      if (page.length && rows + groupRows > rowLimit) {
-        pages.push(page);
-        page = [];
-        rows = 0;
-      }
-      page.push({ name: group.name, guests });
-      rows += groupRows;
-      if (rows === rowLimit) {
-        pages.push(page);
-        page = [];
-        rows = 0;
-      }
-    });
+    const groupRows = 1 + group.guests.length;
+    if (rowCounts[columnIndex] + groupRows > rowsPerColumn && columnIndex === 0) {
+      columnIndex = 1;
+    }
+    if (rowCounts[columnIndex] + groupRows > rowsPerColumn) {
+      pages.push(page);
+      page = [[], []];
+      rowCounts = [0, 0];
+      columnIndex = 0;
+    }
+    page[columnIndex].push(group);
+    rowCounts[columnIndex] += groupRows;
   });
-  if (page.length) pages.push(page);
+
+  if (page.some((column) => column.length)) pages.push(page);
   return pages;
 }
 
-function renderPrintGroups(groups, emptyMessage) {
-  if (!groups.length) return `<p class="attendees-print-empty">${escapeHtml(emptyMessage)}</p>`;
-  const columns = [[], []];
-  groups.forEach((group, index) => {
-    const column = columns[index % 2];
-    column.push({ name: group.name, isPlusOne: false });
-    group.guests.forEach((name) => {
-      column.push({ name, isPlusOne: true });
-    });
-    column[column.length - 1].isGroupEnd = true;
-  });
-  const rowCount = Math.max(...columns.map((column) => column.length));
-  const renderPerson = (person) => person
-    ? `<span class="attendees-print-person${person.isPlusOne ? " is-plus-one" : ""}${person.isGroupEnd ? " is-group-end" : ""}">${escapeHtml(person.name)}</span>`
-    : '<span aria-hidden="true"></span>';
-  return `<div class="attendees-print-rows attendees-print-rows-${rowCount}">
-    ${Array.from({ length: rowCount }, (_, index) => `
-      <div class="attendees-print-row">
-        ${renderPerson(columns[0][index])}
-        <span class="attendees-print-center-gap" aria-hidden="true"></span>
-        ${renderPerson(columns[1][index])}
-      </div>`).join("")}
+function renderPrintGroups(columns, emptyMessage) {
+  if (!columns.some((column) => column.length)) {
+    return `<p class="attendees-print-empty">${escapeHtml(emptyMessage)}</p>`;
+  }
+  return `<div class="attendees-print-columns">
+    ${columns.map((groups) => `<div class="attendees-print-column">${groups.map((group) => `
+      <div class="attendees-print-group">
+        <span class="attendees-print-person attendees-print-name"><span class="attendees-print-number">${group.number}</span> ${escapeHtml(group.name)}</span>
+        ${group.guests.map((name) => `
+          <span class="attendees-print-person is-plus-one">${escapeHtml(name)}</span>`
+        ).join("")}
+      </div>`).join("")}</div>`).join("")}
   </div>`;
 }
 
 async function previewFinalizedGuestList() {
   const accepted = [];
-  const declined = [];
   dashboardRsvps.forEach((rsvp) => {
     const plusOnes = Array.isArray(rsvp.plusOnes) ? rsvp.plusOnes : [];
-    if (rsvp.attendance === "declining") {
-      declined.push({ name: rsvp.fullName, guests: [] });
-      return;
-    }
+    if (rsvp.attendance !== "attending") return;
     if (plusOnes.length && rsvp.plusOneReviewFinalized !== true) return;
 
     accepted.push({
+      number: accepted.length + 1,
       name: rsvp.fullName,
       guests: plusOnes.filter((guest) => guest.status === "approved").map((guest) => guest.name)
     });
-    const declinedPlusOnes = plusOnes.filter((guest) => guest.status === "declined").map((guest) => guest.name);
-    if (declinedPlusOnes.length) declined.push({ name: rsvp.fullName, guests: declinedPlusOnes });
   });
 
   const acceptedPages = paginateGuestGroups(accepted, 30);
-  const declinedPages = paginateGuestGroups(declined, 8);
-  const pageCount = Math.max(acceptedPages.length, declinedPages.length, 1);
+  const pageCount = Math.max(acceptedPages.length, 1);
   elements.attendeesPreviewNote.textContent = "Review the pages below, then print when they look right.";
   elements.attendeesPrint.innerHTML = Array.from({ length: pageCount }, (_, index) => `
     <section class="attendees-print-page" aria-label="Guest list, page ${index + 1}">
       <img class="attendees-print-artwork" src="/print-assets/attendees.png" alt="">
       <div class="attendees-print-list attendees-print-accepted">
-        ${renderPrintGroups(acceptedPages[index] || [], "No finalized attending guests.")}
-      </div>
-      <div class="attendees-print-list attendees-print-declined">
-        ${renderPrintGroups(declinedPages[index] || [], "No finalized declined guests.")}
+        ${renderPrintGroups(acceptedPages[index] || [[], []], "No finalized attending guests.")}
       </div>
     </section>`).join("");
 

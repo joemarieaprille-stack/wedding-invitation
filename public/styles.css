@@ -1612,51 +1612,33 @@ body.showing-invitation main { width: min(100%, 430px); }
 
 .attendees-print-list {
   position: absolute;
-  left: 13%;
-  width: 74%;
+  left: 10%;
+  width: 80%;
   overflow: hidden;
-  font-size: 8.5pt;
-  line-height: 1.15;
-}
-
-.attendees-print-accepted {
-  top: 19%;
-  height: 41%;
-}
-
-.attendees-print-declined {
-  top: 77%;
-  height: 9%;
   font-size: 6pt;
   line-height: 1.05;
 }
 
-.attendees-print-rows {
-  display: flex;
-  height: 100%;
-  flex-direction: column;
-  justify-content: space-between;
+.attendees-print-accepted {
+  top: 27%;
+  height: 63%;
 }
 
-.attendees-print-accepted .attendees-print-rows {
-  height: auto;
-  justify-content: flex-start;
-}
-
-.attendees-print-declined .attendees-print-rows {
-  height: auto;
-  justify-content: flex-start;
-}
-
-.attendees-print-row {
+.attendees-print-columns {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  line-height: 1.15;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 12mm;
+  transform: translateX(10.5%);
 }
 
-.attendees-print-center-gap {
+.attendees-print-column {
+  display: flex;
   min-width: 0;
+  flex-direction: column;
+  gap: 1.5mm;
 }
+
+.attendees-print-group { min-width: 0; }
 
 .attendees-print-person {
   display: block;
@@ -1664,16 +1646,15 @@ body.showing-invitation main { width: min(100%, 430px); }
   overflow-wrap: anywhere;
 }
 
-.attendees-print-row > :first-child {
-  padding-left: 2mm;
+.attendees-print-number {
+  display: inline-block;
+  min-width: 2mm;
+  font-size: 0.75em;
+  vertical-align: 0.1em;
 }
 
 .attendees-print-person.is-plus-one {
-  padding-left: 4mm;
-}
-
-.attendees-print-person.is-group-end {
-  margin-bottom: 1.5mm;
+  padding-left: 8mm;
 }
 
 .attendees-print-person.is-plus-one::before {
