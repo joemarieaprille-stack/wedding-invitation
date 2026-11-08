@@ -503,7 +503,7 @@ async function previewFinalizedGuestList() {
     });
   });
 
-  const acceptedPages = paginateGuestGroups(accepted, 30);
+  const acceptedPages = paginateGuestGroups(accepted, 24);
   const pageCount = Math.max(acceptedPages.length, 1);
   elements.attendeesPreviewNote.textContent = "Review the pages below, then print when they look right.";
   elements.attendeesPrint.innerHTML = Array.from({ length: pageCount }, (_, index) => `

@@ -1615,7 +1615,7 @@ body.showing-invitation main { width: min(100%, 430px); }
   left: 10%;
   width: 80%;
   overflow: hidden;
-  font-size: 6pt;
+  font-size: 8.5pt;
   line-height: 1.05;
 }
 
