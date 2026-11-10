@@ -497,7 +497,7 @@ function measurePrintGuestGroups(groups) {
   guestList.className = "attendees-print-list attendees-print-accepted";
   guestList.innerHTML = renderPrintGroups([groups, []], "");
   measurementPage.append(guestList);
-  elements.attendeesPrint.append(measurementPage);
+  document.body.append(measurementPage);
 
   const column = guestList.querySelector(".attendees-print-column");
   const groupHeights = column
