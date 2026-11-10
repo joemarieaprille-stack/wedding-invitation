@@ -1596,6 +1596,7 @@ body.showing-invitation main { width: min(100%, 430px); }
   width: min(210mm, 100%);
   aspect-ratio: 210 / 297;
   overflow: hidden;
+  container-type: inline-size;
   color: #111;
   background: #fff;
   box-shadow: 0 4px 18px rgb(0 0 0 / 20%);
@@ -1617,7 +1618,7 @@ body.showing-invitation main { width: min(100%, 430px); }
   width: 80%;
   margin: 0;
   text-align: center;
-  font-size: 11pt;
+  font-size: 1.847cqw;
   line-height: 1;
 }
 
@@ -1626,7 +1627,7 @@ body.showing-invitation main { width: min(100%, 430px); }
   left: 10%;
   width: 80%;
   overflow: hidden;
-  font-size: 9.5pt;
+  font-size: 1.596cqw;
   line-height: 1;
 }
 
@@ -1646,6 +1647,7 @@ body.showing-invitation main { width: min(100%, 430px); }
   display: flex;
   min-width: 0;
   flex-direction: column;
+  gap: 0.714cqw;
 }
 
 .attendees-print-group { min-width: 0; }
@@ -1852,6 +1854,10 @@ body.showing-invitation main { width: min(100%, 430px); }
 
   .attendees-preview-toolbar { display: none !important; }
   .attendees-print-empty { display: none !important; }
+
+  .attendees-print-total { font-size: 11pt; }
+  .attendees-print-list { font-size: 9.5pt; }
+  .attendees-print-column { gap: 1.5mm; }
 
   #attendees-print {
     display: block;

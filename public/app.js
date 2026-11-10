@@ -449,29 +449,64 @@ function renderRsvps(rsvps) {
   renderRsvpCards(visibleRsvps, emptyMessage);
 }
 
-function paginateGuestGroups(groups, rowsPerColumn) {
+function paginateGuestGroups(groups, groupHeights, groupGap, columnHeight) {
   const pages = [];
   let page = [[], []];
-  let rowCounts = [0, 0];
+  let columnHeightUsed = 0;
   let columnIndex = 0;
 
-  groups.forEach((group) => {
-    const groupRows = 1 + group.guests.length;
-    if (rowCounts[columnIndex] + groupRows > rowsPerColumn && columnIndex === 0) {
+  groups.forEach((group, index) => {
+    const groupHeight = groupHeights[index];
+    let heightToAdd = groupHeight + (page[columnIndex].length ? groupGap : 0);
+    if (columnHeightUsed + heightToAdd > columnHeight && columnIndex === 0) {
       columnIndex = 1;
+      columnHeightUsed = 0;
+      heightToAdd = groupHeight;
     }
-    if (rowCounts[columnIndex] + groupRows > rowsPerColumn) {
+    if (columnHeightUsed + heightToAdd > columnHeight) {
       pages.push(page);
       page = [[], []];
-      rowCounts = [0, 0];
       columnIndex = 0;
+      columnHeightUsed = 0;
+      heightToAdd = groupHeight;
     }
     page[columnIndex].push(group);
-    rowCounts[columnIndex] += groupRows;
+    columnHeightUsed += heightToAdd;
   });
 
   if (page.some((column) => column.length)) pages.push(page);
   return pages;
+}
+
+function measurePrintGuestGroups(groups) {
+  const measurementPage = document.createElement("section");
+  measurementPage.className = "attendees-print-page";
+  Object.assign(measurementPage.style, {
+    position: "absolute",
+    left: "-10000px",
+    top: "0",
+    width: "210mm",
+    height: "297mm",
+    aspectRatio: "auto",
+    boxShadow: "none",
+    visibility: "hidden",
+    pointerEvents: "none"
+  });
+
+  const guestList = document.createElement("div");
+  guestList.className = "attendees-print-list attendees-print-accepted";
+  guestList.innerHTML = renderPrintGroups([groups, []], "");
+  measurementPage.append(guestList);
+  elements.attendeesPrint.append(measurementPage);
+
+  const column = guestList.querySelector(".attendees-print-column");
+  const groupHeights = column
+    ? [...column.children].map((group) => group.getBoundingClientRect().height)
+    : [];
+  const groupGap = column ? parseFloat(getComputedStyle(column).rowGap) || 0 : 0;
+  const columnHeight = guestList.getBoundingClientRect().height;
+  measurementPage.remove();
+  return { groupHeights, groupGap, columnHeight };
 }
 
 function renderPrintGroups(columns, emptyMessage) {
@@ -513,7 +548,9 @@ async function previewFinalizedGuestList() {
     group.number = index + 1;
   });
 
-  const acceptedPages = paginateGuestGroups(accepted, 35);
+  await document.fonts.ready;
+  const { groupHeights, groupGap, columnHeight } = measurePrintGuestGroups(accepted);
+  const acceptedPages = paginateGuestGroups(accepted, groupHeights, groupGap, columnHeight);
   const pageCount = Math.max(acceptedPages.length, 1);
   const totalGuests = countPrintGuests(accepted);
   elements.attendeesPreviewNote.textContent = "Review the pages below, then print when they look right.";
