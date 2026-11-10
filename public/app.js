@@ -489,6 +489,10 @@ function renderPrintGroups(columns, emptyMessage) {
   </div>`;
 }
 
+function countPrintGuests(groups) {
+  return groups.reduce((count, group) => count + 1 + group.guests.length, 0);
+}
+
 async function previewFinalizedGuestList() {
   const accepted = [];
   dashboardRsvps.forEach((rsvp) => {
@@ -497,18 +501,26 @@ async function previewFinalizedGuestList() {
     if (plusOnes.length && rsvp.plusOneReviewFinalized !== true) return;
 
     accepted.push({
-      number: accepted.length + 1,
       name: rsvp.fullName,
       guests: plusOnes.filter((guest) => guest.status === "approved").map((guest) => guest.name)
     });
   });
 
-  const acceptedPages = paginateGuestGroups(accepted, 24);
+  accepted.sort((first, second) =>
+    first.name.localeCompare(second.name, undefined, { sensitivity: "base", numeric: true })
+  );
+  accepted.forEach((group, index) => {
+    group.number = index + 1;
+  });
+
+  const acceptedPages = paginateGuestGroups(accepted, 35);
   const pageCount = Math.max(acceptedPages.length, 1);
+  const totalGuests = countPrintGuests(accepted);
   elements.attendeesPreviewNote.textContent = "Review the pages below, then print when they look right.";
   elements.attendeesPrint.innerHTML = Array.from({ length: pageCount }, (_, index) => `
     <section class="attendees-print-page" aria-label="Guest list, page ${index + 1}">
       <img class="attendees-print-artwork" src="/print-assets/attendees.png" alt="">
+      <p class="attendees-print-total">${totalGuests} total ${totalGuests === 1 ? "guest" : "guests"}</p>
       <div class="attendees-print-list attendees-print-accepted">
         ${renderPrintGroups(acceptedPages[index] || [[], []], "No finalized attending guests.")}
       </div>

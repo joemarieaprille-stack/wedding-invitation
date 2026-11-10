@@ -30,7 +30,7 @@ The host dashboard shows RSVP requests that still need review by default. RSVPs 
 
 The host dashboard also manages the invite list. Add each invitee with an allowed number of additional guests (0–20). Guests who are not on the list cannot RSVP, and each invited guest's plus-one limit is checked again on the server when an RSVP is submitted. Local invitation records are stored in [`data/invitations.json`](./data/invitations.json); when `DATABASE_URL` is configured, invitation records are stored in PostgreSQL.
 
-Use **Print finalized guest list** in the host dashboard to preview and print finalized attending guests on the `asset/ATTENDEES.png` layout. Declining RSVPs are excluded. Pending guest decisions are excluded, and only approved additional guests appear as bullets below their invitee. Attending invitees are numbered top-to-bottom in the first column, then the second column, beneath the artwork's “Accepts” heading. Long lists continue onto additional copies of the artwork.
+Use **Print finalized guest list** in the host dashboard to preview and print finalized attending guests on the `asset/ATTENDEES.png` layout. Declining RSVPs are excluded. Pending guest decisions are excluded, and only approved additional guests appear as bullets below their invitee. Invitees are sorted alphabetically and numbered top-to-bottom in the first column, then the second column; their plus-ones stay beneath them and are included in the total guest count. Long lists continue onto additional copies of the artwork.
 
 ## Customize for another wedding
 

@@ -1610,18 +1610,29 @@ body.showing-invitation main { width: min(100%, 430px); }
   object-fit: fill;
 }
 
+.attendees-print-total {
+  position: absolute;
+  top: 20.5%;
+  left: 10%;
+  width: 80%;
+  margin: 0;
+  text-align: center;
+  font-size: 11pt;
+  line-height: 1;
+}
+
 .attendees-print-list {
   position: absolute;
   left: 10%;
   width: 80%;
   overflow: hidden;
-  font-size: 8.5pt;
-  line-height: 1.05;
+  font-size: 9.5pt;
+  line-height: 1;
 }
 
 .attendees-print-accepted {
-  top: 27%;
-  height: 63%;
+  top: 23%;
+  height: 64%;
 }
 
 .attendees-print-columns {
@@ -1635,7 +1646,6 @@ body.showing-invitation main { width: min(100%, 430px); }
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 1.5mm;
 }
 
 .attendees-print-group { min-width: 0; }
